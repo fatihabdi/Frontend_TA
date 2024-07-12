@@ -2,7 +2,7 @@ import * as React from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { Button } from '@chakra-ui/react';
 import TextInput from '@/components/TextInput';
-import PrimaryButton from '../PrimaryButton';
+import PrimaryButton from '@/components/PrimaryButton';
 
 type DetailMateriProps = {
   detailMateri: { title: string; description: string };
