@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+
+changed_files="$(git diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD)"
+
+if echo "$changed_files" | grep --quiet "package.json"; then
+    echo 'package.json changed. Running npm install to bring your dependencies up to date.'
+    npm i
+fi

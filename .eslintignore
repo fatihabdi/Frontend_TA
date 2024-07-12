@@ -1,0 +1,9 @@
+node_modules/
+package.json
+package-lock.json
+tailwind.config.js
+postcss.config.js
+next.config.js
+public/
+src/components/ui/
+src/

@@ -1,0 +1,46 @@
+{
+  "theme_color": "#253D7B",
+  "background_color": "#FCFCFD",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/login",
+  "name": "Education Management System - SMPN1 Magetan",
+  "short_name": "EMS - SMPN1 Magetan",
+  "description": "Education Management System - SMPN1 Magetan",
+  "screenshots": [
+    {
+      "src": "/screenshot-login.png",
+      "sizes": "1915x931",
+      "type": "image/gif",
+      "form_factor": "wide",
+      "label": "Wonder Widgets"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/logo144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

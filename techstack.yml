@@ -1,0 +1,20 @@
+repo_name: Magetan-Boyz/Frontend-TA
+report_id: d4182d147492928ccf704715d4023953
+version: 0.1
+repo_type: Public
+timestamp: '2024-01-12T17:40:25+00:00'
+requested_by: fatihabdi
+provider: github
+branch: main
+detected_tools_count: 1
+tools:
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/Magetan-Boyz/Frontend-TA
+  detection_source: Repo Metadata
