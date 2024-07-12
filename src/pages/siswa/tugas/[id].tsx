@@ -2,7 +2,6 @@ import * as React from 'react';
 import AuthenticatedLayout from '@/components/layout/layoutSiswa/AuthenticatedLayout';
 import Seo from '@/components/Seo';
 import PrimaryButton from '@/components/PrimaryButton';
-import { useState, useEffect } from 'react';
 import {
   Tag,
   TagLabel,
@@ -20,6 +19,7 @@ import SecondaryButton from '@/components/SecondaryButton';
 import { PiFlagBannerBold } from 'react-icons/pi';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 export default function Tugas() {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -28,8 +28,20 @@ export default function Tugas() {
   const router = useRouter();
   const { id, title } = router.query;
   const [submission, setSubmission] = useState('');
+  const [username, setUsername] = useState('');
 
-  const username = localStorage.getItem('username');
+  useEffect(() => {
+    if (!id || !title) {
+      router.push(`/siswa/tugas`);
+    }
+  }, [id, title]);
+
+  useEffect(() => {
+    const user = localStorage.getItem('username');
+    if (user) {
+      setUsername(user);
+    }
+  }, []);
 
   const handleSubmit = () => {
     axios
@@ -64,12 +76,6 @@ export default function Tugas() {
         });
       });
   };
-
-  useEffect(() => {
-    if (!id || !title) {
-      router.push(`/siswa/tugas/${id}`);
-    }
-  }, [id, title]);
 
   return (
     <AuthenticatedLayout>
