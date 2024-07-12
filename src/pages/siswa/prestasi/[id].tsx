@@ -3,13 +3,20 @@ import AuthenticatedLayout from '@/components/layout/layoutSiswa/AuthenticatedLa
 import Seo from '@/components/Seo';
 import { Select, Tag, TagLabel } from '@chakra-ui/react';
 import PrimaryButton from '@/components/PrimaryButton';
+import { useRouter } from 'next/router';
 
 export default function EditPrestasi() {
-  const [item, setItem] = React.useState([]);
+  const [item, setItem] = React.useState({});
+  const router = useRouter();
+  const { data } = router.query;
 
-  // React.useEffect(() => {
-  //   axios
-  //     .get('https://ems-30c1804a223a.herokuapp.com/api/student/achivement/1', {
+  React.useEffect(() => {
+    if (data) {
+      const parsedData = JSON.parse(data);
+      setItem(parsedData);
+    }
+  }, [data]);
+
   return (
     <div>
       <AuthenticatedLayout>
@@ -20,42 +27,50 @@ export default function EditPrestasi() {
           </div>
           <div className="flex flex-col gap-5 p-3">
             <div className="flex flex-col gap-3">
-              <label htmlFor="pengaduan" className="text-sm font-medium text-Gray-700">
+              <label htmlFor="namaKegiatan" className="text-sm font-medium text-Gray-700">
                 Nama dan Judul Kegiatan
               </label>
               <input
-                name="pengaduan"
-                id="pengaduan"
+                name="namaKegiatan"
+                id="namaKegiatan"
                 className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
-                placeholder="Tuliskan pengaduan kamu disini"
+                placeholder="Tuliskan nama dan judul kegiatan disini"
+                value={item.title || ''}
+                readOnly
               />
             </div>
             <div className="flex flex-col gap-3">
               <h1 className="text-sm font-medium text-Gray-700">Jenis Prestasi</h1>
-              <Select placeholder="Pilih Golongan Darah">
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="AB">AB</option>
-                <option value="O">O</option>
-              </Select>
+              <input
+                name="namaKegiatan"
+                id="namaKegiatan"
+                className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
+                placeholder="Tuliskan nama dan judul kegiatan disini"
+                value={item.type_of_achivement || ''}
+                readOnly
+              />
             </div>
             <div className="flex flex-col gap-3">
               <h1 className="text-sm font-medium text-Gray-700">Jenis Partisipasi</h1>
-              <Select placeholder="Pilih Golongan Darah">
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="AB">AB</option>
-                <option value="O">O</option>
-              </Select>
+              <input
+                name="namaKegiatan"
+                id="namaKegiatan"
+                className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
+                placeholder="Tuliskan nama dan judul kegiatan disini"
+                value={item.participation || ''}
+                readOnly
+              />
             </div>
             <div className="flex flex-col gap-3">
               <h1 className="text-sm font-medium text-Gray-700">Jenis Tingkat</h1>
-              <Select placeholder="Pilih Golongan Darah">
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="AB">AB</option>
-                <option value="O">O</option>
-              </Select>
+              <input
+                name="namaKegiatan"
+                id="namaKegiatan"
+                className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
+                placeholder="Tuliskan nama dan judul kegiatan disini"
+                value={item.level || ''}
+                readOnly
+              />
             </div>
             <div className="flex flex-col gap-3">
               <label htmlFor="link" className="text-sm text-Gray-700">
@@ -68,6 +83,8 @@ export default function EditPrestasi() {
                   id="link"
                   className="w-full p-2 border-0 rounded-r-md focus:outline-none"
                   placeholder="www.example.com"
+                  value={item.evidence || ''}
+                  readOnly
                 />
               </div>
             </div>
@@ -77,7 +94,7 @@ export default function EditPrestasi() {
                 <Tag colorScheme="blue" borderRadius="full" size="sm" className="w-fit">
                   <TagLabel>Wait Approval</TagLabel>
                 </Tag>
-              ) : item.status === 'Success' ? (
+              ) : item.status === 'accepted' ? (
                 <Tag colorScheme="green" borderRadius="full" size="sm" className="w-fit">
                   <TagLabel>Success</TagLabel>
                 </Tag>
@@ -95,11 +112,10 @@ export default function EditPrestasi() {
                 name="alasan"
                 id="alasan"
                 className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
-                placeholder="Tuliskan hasil kamu disini"
+                placeholder="Tuliskan alasan kamu disini"
+                value={item.alasan || 'Tidak Ada'}
+                readOnly
               />
-            </div>
-            <div className="flex justify-end gap-3">
-              <PrimaryButton btnClassName="w-fit h-fit rounded-md">Ajukan Ulang</PrimaryButton>
             </div>
           </div>
         </div>

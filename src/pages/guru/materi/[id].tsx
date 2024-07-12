@@ -3,48 +3,65 @@ import { FiTrash2 } from 'react-icons/fi';
 import { Button } from '@chakra-ui/react';
 import TextInput from '@/components/TextInput';
 import PrimaryButton from '@/components/PrimaryButton';
+import AuthenticatedLayout from '@/components/layout/layoutGuru/AuthenticatedLayout';
+import Seo from '@/components/Seo';
+import { useRouter } from 'next/router';
 
-type DetailMateriProps = {
-  detailMateri: { title: string; description: string };
-  setDetailMateri: (detail: { title: string; description: string }) => void;
-  handleSave: () => void;
-};
+export default function DetailMateri() {
+  const router = useRouter();
+  const { subitem } = router.query;
 
-export default function DetailMateri({ detailMateri, setDetailMateri, handleSave }: DetailMateriProps) {
-  const handleChange = (key: string, value: string) => {
+  const [detailMateri, setDetailMateri] = React.useState({
+    title: '',
+    description: '',
+    link: ''
+  });
+
+  React.useEffect(() => {
+    if (subitem) {
+      const subItemData = JSON.parse(subitem);
+      setDetailMateri({
+        title: subItemData.title || '',
+        description: subItemData.description || '',
+        link: subItemData.link || ''
+      });
+    }
+  }, [subitem]);
+
+  const handleChange = (key, value) => {
     setDetailMateri((prevDetail) => ({
       ...prevDetail,
       [key]: value
     }));
   };
 
-  // Ensure that detailMateri is defined and has default values
-  const { title = '', description = '' } = detailMateri || {};
+  const { title, description, link } = detailMateri;
 
   return (
-    <div className="w-full p-3 rounded-md shadow-lg h-fit bg-Base-white">
-      <div className="flex flex-col justify-between gap-5 p-5 lg:flex-row">
-        <div className="flex flex-col w-full gap-3">
-          <h1 className="text-sm font-semibold text-Gray-600">Nama Materi</h1>
-          <TextInput inputClassName="border shadow-none" value={title} onChange={(e) => handleChange('title', e.target.value)} />
+    <AuthenticatedLayout>
+      <Seo title="Detail Konten Materi" />
+      <div className="w-full p-3 rounded-md shadow-lg h-fit bg-Base-white">
+        <div className="flex flex-col justify-between gap-5 p-5 lg:flex-row">
+          <div className="flex flex-col w-full gap-3">
+            <h1 className="text-sm font-semibold text-Gray-600">Nama Konten</h1>
+            <TextInput inputClassName="border shadow-none" value={title} onChange={(e) => handleChange('title', e.target.value)} />
+          </div>
+        </div>
+        <div className="flex flex-col gap-5 p-5">
+          <h1 className="text-sm font-semibold text-Gray-600">Deskripsi Konten</h1>
+          <textarea
+            className="w-full p-3 text-sm font-medium border rounded-lg h-fit text-Gray-500"
+            value={description}
+            onChange={(e) => handleChange('description', e.target.value)}
+          ></textarea>
+        </div>
+        <div className="flex flex-col justify-between gap-5 p-5 lg:flex-row">
+          <div className="flex flex-col w-full gap-3">
+            <h1 className="text-sm font-semibold text-Gray-600">Link</h1>
+            <TextInput inputClassName="border shadow-none" value={link} onChange={(e) => handleChange('link', e.target.value)} />
+          </div>
         </div>
       </div>
-      <div className="flex flex-col gap-5 p-5">
-        <h1 className="text-sm font-semibold text-Gray-600">Deskripsi Materi</h1>
-        <textarea
-          className="w-full p-3 text-sm font-medium border rounded-lg h-fit text-Gray-500"
-          value={description}
-          onChange={(e) => handleChange('description', e.target.value)}
-        ></textarea>
-      </div>
-      <div className="flex justify-end gap-5 p-4">
-        <Button leftIcon={<FiTrash2 />} colorScheme="gray" variant="outline">
-          Hapus Materi
-        </Button>
-        <PrimaryButton btnClassName="w-fit h-fit py-2" onClick={handleSave}>
-          Simpan Materi
-        </PrimaryButton>
-      </div>
-    </div>
+    </AuthenticatedLayout>
   );
 }

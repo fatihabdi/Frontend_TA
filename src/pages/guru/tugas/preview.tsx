@@ -7,7 +7,17 @@ import { isSameDay } from 'date-fns';
 import PrimaryButton from '@/components/PrimaryButton';
 import { Select, useToast } from '@chakra-ui/react';
 import { FiSearch, FiCalendar, FiBook, FiInfo } from 'react-icons/fi';
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from '@chakra-ui/react';
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  Button
+} from '@chakra-ui/react';
 import { PiFlagBannerBold } from 'react-icons/pi';
 import SecondaryButton from '@/components/SecondaryButton';
 import axios from 'axios';
@@ -37,6 +47,8 @@ export default function PreviewTugas() {
   });
 
   const [tasks, setTasks] = React.useState([]);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const tasksPerPage = 5;
 
   React.useEffect(() => {
     const hd = new Holidays('ID');
@@ -167,7 +179,28 @@ export default function PreviewTugas() {
       });
   };
 
-  const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredTasks = tasks.filter((task) => {
+    const matchesSearchTerm = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesClass = formData.class ? task.class === formData.class : true;
+    const matchesSubject = formData.subject ? task.subject === formData.subject : true;
+    return matchesSearchTerm && matchesClass && matchesSubject;
+  });
+
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+
+  const nextPage = () => {
+    if (currentPage < Math.ceil(filteredTasks.length / tasksPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   return (
     <div>
@@ -177,48 +210,31 @@ export default function PreviewTugas() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:border-b lg:border-Gray-200 lg:px-5 lg:pb-5">
             <div className="flex items-center justify-between">
               <h1 className="text-lg font-semibold">Daftar Tugas</h1>
-              <PrimaryButton btnClassName="w-fit lg:hidden" onClick={onOpen}>
+              <PrimaryButton size="mini" btnClassName="w-fit lg:hidden" onClick={onOpen}>
                 Buat Tugas
               </PrimaryButton>
             </div>
             <div className="flex items-center justify-center gap-5">
-              <Select placeholder="Mata Pelajaran" size="md">
+              <Select placeholder="Mata Pelajaran" size="md" name="subject_id" value={formData.subject_id} onChange={handleInputChange}>
                 {subjects.map((subject) => (
                   <option key={subject.subject_id} value={subject.subject_id}>
                     {subject.subject_name}
                   </option>
                 ))}
               </Select>
-              <Select placeholder="Kelas" size="md">
+              <Select placeholder="Kelas" size="md" name="class_id" value={formData.class_id} onChange={handleInputChange}>
                 {classes.map((cls) => (
                   <option key={cls.class_id} value={cls.class_id}>
                     {cls.class_name}
                   </option>
                 ))}
               </Select>
-              <PrimaryButton btnClassName="lg:flex w-fit h-fit hidden" onClick={onOpen}>
+              <PrimaryButton size="mini" btnClassName="lg:flex w-fit h-fit hidden" onClick={onOpen}>
                 Buat Tugas
               </PrimaryButton>
             </div>
           </div>
-          <DayPicker
-            mode="multiple"
-            selected={selectedDates}
-            onDayClick={handleDayClick}
-            disabled={disabledDays}
-            styles={{
-              head_cell: {
-                width: `${calendarContainerRef.current?.clientWidth ?? 0}px`
-              },
-              table: {
-                maxWidth: 'none'
-              },
-              day: {
-                width: '',
-                margin: 'auto'
-              }
-            }}
-          />
+
           <div className="mt-4">
             <div className="relative">
               <input
@@ -234,7 +250,7 @@ export default function PreviewTugas() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 mt-4">
-            {filteredTasks.map((task) => (
+            {currentTasks.map((task) => (
               <div key={task.id} className="p-4 border rounded-md shadow-sm">
                 <h2 className="font-semibold text-[#6941C6]">Tugas</h2>
                 <h3 className="mt-2 text-lg font-bold">{task.title}</h3>
@@ -258,6 +274,14 @@ export default function PreviewTugas() {
               </div>
             ))}
             {filteredTasks.length === 0 && <div className="text-center py-5 text-Gray-600">Tidak ada tugas ditemukan</div>}
+          </div>
+          <div className="flex justify-between mt-4">
+            <Button onClick={prevPage} disabled={currentPage === 1}>
+              Previous
+            </Button>
+            <Button onClick={nextPage} disabled={currentPage === Math.ceil(filteredTasks.length / tasksPerPage)}>
+              Next
+            </Button>
           </div>
         </div>
         <Modal isOpen={isOpen} onClose={onClose} isCentered>

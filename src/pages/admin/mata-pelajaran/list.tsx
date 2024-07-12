@@ -28,7 +28,6 @@ export default function CreateMataPelajaran() {
       })
       .then((response) => {
         setMapel(response.data.data || []); // Ensure the response data is an array
-
         setJenisMapelOptions(response.data.data);
         setLoading(false);
       })
@@ -55,7 +54,7 @@ export default function CreateMataPelajaran() {
         <div className="w-full p-3 border rounded-md shadow-lg h-fit border-Gray-200 bg-Base-white">
           <div className="flex items-center justify-between p-3 lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">Mata Pelajaran</h1>
-            <PrimaryButton btnClassName="w-fit h-fit" onClick={() => router.push('/admin/mata-pelajaran/create')}>
+            <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => router.push('/admin/mata-pelajaran/create')}>
               Tambah Mata Pelajaran
             </PrimaryButton>
           </div>
@@ -133,10 +132,16 @@ export default function CreateMataPelajaran() {
                         <Td>{item.semester}</Td>
                         <Td>
                           <SecondaryButton
+                            size="mini"
                             btnClassName="font-semibold w-fit h-fit"
-                            onClick={() => router.push(`/admin/mata-pelajaran/${item.id}`)}
+                            onClick={() =>
+                              router.push({
+                                pathname: '/admin/mata-pelajaran/edit',
+                                query: { item: JSON.stringify(item) }
+                              })
+                            }
                           >
-                            Details
+                            Edit
                           </SecondaryButton>
                         </Td>
                       </Tr>

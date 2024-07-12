@@ -5,8 +5,7 @@ import { DayPicker } from 'react-day-picker';
 import Holidays from 'date-holidays';
 import ScheduleCard from '@/components/ScheduleCard';
 import SecondaryButton from '@/components/SecondaryButton';
-import { Table, Thead, Tbody, Tr, Th, Td, Skeleton, TableContainer } from '@chakra-ui/react';
-
+import { Table, Thead, Tbody, Tr, Th, Td, Skeleton, TableContainer, Select, useToast } from '@chakra-ui/react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import dayjs from 'dayjs';
@@ -29,11 +28,11 @@ interface Announcement {
 
 interface Grade {
   id: number;
-  rataRata: string;
-  nilaiTertinggi: string;
-  nilaiTerendah: string;
-  median: string;
-  created_at: string; // Assuming the grade has a created_at property
+  subject: string;
+  formative_scores: string;
+  summative_scores: string;
+  project_scores: string;
+  final_grade: string;
 }
 
 export default function Home() {
@@ -41,24 +40,49 @@ export default function Home() {
   const router = useRouter();
   const [announcement, setAnnouncement] = React.useState<Announcement[]>([]);
   const [disabledDays, setDisabledDays] = React.useState<Date[]>([]);
-
   const [selectedDate, setSelectedDate] = React.useState(initiallySelectedDate);
   const [schedule, setSchedule] = React.useState<ScheduleItem[]>([]);
-  const [semester, setSemester] = React.useState(1);
-  const [academicYear, setAcademicYear] = React.useState(new Date().getFullYear());
+  const [semester, setSemester] = React.useState('1');
+  const [academic_year, setAcademicYear] = React.useState('2023-2024');
   const [loadingSchedule, setLoadingSchedule] = React.useState(true);
   const [attendance, setAttendance] = React.useState([]);
   const [groupedAttendance, setGroupedAttendance] = React.useState([]);
   const [username, setUsername] = React.useState('');
-  const [grades, setGrades] = React.useState([]);
-
+  const [grades, setGrades] = React.useState<Grade[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const toast = useToast();
 
   React.useEffect(() => {
-    if (semester && academicYear) {
-      fetchGrades();
+    const hd = new Holidays('ID');
+    const currentYear = new Date().getFullYear();
+    const holidays = hd.getHolidays(currentYear);
+    const holidayDates = holidays.map((holiday) => new Date(holiday.date));
+    setDisabledDays(holidayDates);
+
+    fetchAnnouncements();
+    fetchGrades();
+    fetchAttendance();
+  }, []);
+
+  React.useEffect(() => {
+    fetchGrades();
+  }, [semester, academic_year]);
+
+  const fetchAnnouncements = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/global/announcements`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const sortedAnnouncements = response.data.data
+        .sort((a: Announcement, b: Announcement) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+      setAnnouncement(sortedAnnouncements);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
     }
-  }, [semester, academicYear]);
+  };
 
   const fetchGrades = async () => {
     setLoading(true);
@@ -70,148 +94,40 @@ export default function Home() {
         },
         params: {
           semester,
-          academicYear
+          academic_year
         }
       });
       const data = response.data.data || [];
       setGrades(data);
     } catch (error) {
       console.error('Error fetching grades:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch grades',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const dayOfWeekMap: { [key: number]: string } = {
-    1: 'Monday',
-    2: 'Tuesday',
-    3: 'Wednesday',
-    4: 'Thursday',
-    5: 'Friday',
-    6: 'Saturday',
-    7: 'Sunday'
-  };
-
-  React.useEffect(() => {
-    const fetchSchedule = async () => {
-      try {
-        const response = await axios.get<{ data: ScheduleItem[] }>(`${process.env.NEXT_PUBLIC_API_URL}/parent/schedule`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-
-        const now = new Date();
-        const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
-
-        const scheduleWithStatus =
-          response.data.data?.map((item) => {
-            const itemDay = dayOfWeekMap[item.day_of_week];
-            let status: 'inactive' | 'ongoing' | 'done' = 'inactive';
-            if (itemDay === currentDay && dayjs(now).isSame(selectedDate, 'day')) {
-              if (currentTime > item.end_time) {
-                status = 'done';
-              } else if (currentTime >= item.start_time && currentTime <= item.end_time) {
-                status = 'ongoing';
-              }
-            }
-            return {
-              ...item,
-              day_of_week: itemDay,
-              status
-            };
-          }) || [];
-
-        setSchedule(scheduleWithStatus);
-        setLoadingSchedule(false);
-      } catch (error) {
-        console.error('Error fetching schedule:', error);
-        setLoadingSchedule(false);
-      }
-    };
-
-    const updateScheduleStatus = () => {
-      const now = new Date();
-      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
-
-      setSchedule((prevSchedule) =>
-        prevSchedule.map((item) => {
-          if (item.day_of_week === currentDay && dayjs(now).isSame(selectedDate, 'day')) {
-            if (currentTime > item.end_time) {
-              return { ...item, status: 'done' };
-            } else if (currentTime >= item.start_time && currentTime <= item.end_time) {
-              return { ...item, status: 'ongoing' };
-            } else {
-              return { ...item, status: 'inactive' };
-            }
-          }
-          return item;
-        })
-      );
-    };
-
-    fetchSchedule();
-    const interval = setInterval(updateScheduleStatus, 60000);
-    updateScheduleStatus();
-
-    return () => clearInterval(interval);
-  }, [selectedDate]);
-
-  React.useEffect(() => {
-    fetchGrades(semester, academicYear);
-  }, [semester, academicYear]);
-
-  React.useEffect(() => {
-    axios
-      .get(`${process.env.NEXT_PUBLIC_API_URL}/global/announcements`, {
+  const fetchAttendance = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/parent/attendance`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
-      })
-      .then((response) => {
-        const sortedAnnouncements = response.data.data
-          .sort((a: Announcement, b: Announcement) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          .slice(0, 3);
-        setAnnouncement(sortedAnnouncements);
       });
-  }, []);
-
-  React.useEffect(() => {
-    const hd = new Holidays('ID');
-    const currentYear = new Date().getFullYear();
-    const holidays = hd.getHolidays(currentYear);
-    const holidayDates = holidays.map((holiday) => new Date(holiday.date));
-    setDisabledDays(holidayDates);
-  }, []);
-
-  const getDayOfWeek = (date: Date) => {
-    const day = date.getDay();
-    return day === 0 ? 7 : day; // Convert Sunday (0) to 7
-  };
-
-  const selectedDayOfWeek = getDayOfWeek(selectedDate);
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setUsername(localStorage.getItem('username') || '');
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/parent/attendance`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-        .then((response) => {
-          const data = response.data.data || [];
-          console.log('Fetched Attendance Data:', data); // Add logging
-          setAttendance(data);
-          const groupedData = groupAttendanceBySubject(data);
-          console.log('Grouped Attendance Data:', groupedData); // Add logging
-          setGroupedAttendance(groupedData);
-        });
+      const data = response.data.data || [];
+      setAttendance(data);
+      const groupedData = groupAttendanceBySubject(data);
+      setGroupedAttendance(groupedData);
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
     }
-  }, []);
+  };
 
   const groupAttendanceBySubject = (data) => {
     const grouped = data.reduce((acc, item) => {
@@ -223,7 +139,7 @@ export default function Home() {
         };
       }
       acc[item.subject_name].total_meetings += 1;
-      if (item.attedance_status === 'Hadir') {
+      if (item.attendance_status === 'Hadir') {
         acc[item.subject_name].total_attendance += 1;
       }
       return acc;
@@ -272,6 +188,17 @@ export default function Home() {
                 </button>
               </span>
               <div className="flex flex-col justify-between border border-Gray-200 gap-4 rounded-xl bg-Base-white">
+                <div className="flex items-center p-3 gap-3">
+                  <Select placeholder="Pilih Semester" size="md" onChange={(e) => setSemester(e.target.value)}>
+                    <option value="1">Ganjil</option>
+                    <option value="2">Genap</option>
+                  </Select>
+                  <Select placeholder="Pilih Tahun Ajaran" size="md" onChange={(e) => setAcademicYear(e.target.value)}>
+                    <option value="2023-2024">2023-2024</option>
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2025-2026">2025-2026</option>
+                  </Select>
+                </div>
                 <TableContainer className="">
                   <Table className="">
                     <Thead className="bg-Gray-50">
@@ -331,7 +258,6 @@ export default function Home() {
                         <Th>Presentase Kehadiran</Th>
                         <Th>Jumlah Kehadiran</Th>
                         <Th>Jumlah Pertemuan</Th>
-                        <Th></Th>
                       </Tr>
                     </Thead>
                     <Tbody>
@@ -349,16 +275,6 @@ export default function Home() {
                             <Td>{item.attendance_percentage}</Td>
                             <Td>{item.total_attendance}</Td>
                             <Td>{item.total_meetings}</Td>
-                            <Td>
-                              <SecondaryButton
-                                colorScheme="gray"
-                                variant="outline"
-                                size="md"
-                                onClick={() => router.push(`/wali/kehadiran/ListKehadiran`)}
-                              >
-                                Details
-                              </SecondaryButton>
-                            </Td>
                           </Tr>
                         ))
                       )}

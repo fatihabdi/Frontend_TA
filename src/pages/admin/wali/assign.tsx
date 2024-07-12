@@ -140,7 +140,7 @@ export default function ListWali() {
         <div className="w-full p-3 border rounded-md shadow-lg h-fit border-Gray-200 bg-Base-white">
           <div className="flex items-center justify-between p-3 lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">List Akun Wali</h1>
-            <PrimaryButton btnClassName="w-fit h-fit" onClick={() => onFirstModalOpen()}>
+            <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => onFirstModalOpen()}>
               Buat Akun
             </PrimaryButton>
           </div>
@@ -202,7 +202,7 @@ export default function ListWali() {
                         <Td>{item.email}</Td>
                         <Td>{item.student_name ? item.student_name : '-'}</Td>
                         <Td>
-                          <SecondaryButton btnClassName="font-semibold w-fit h-fit" onClick={() => handleAssignStudent(item)}>
+                          <SecondaryButton size="mini" btnClassName="font-semibold w-fit h-fit" onClick={() => handleAssignStudent(item)}>
                             Assign Siswa
                           </SecondaryButton>
                         </Td>

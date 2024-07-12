@@ -5,8 +5,7 @@ import { DayPicker } from 'react-day-picker';
 import Holidays from 'date-holidays';
 import ScheduleCard from '@/components/ScheduleCard';
 import SecondaryButton from '@/components/SecondaryButton';
-import { Table, Thead, Tbody, Tr, Th, Td, Skeleton, TableContainer } from '@chakra-ui/react';
-
+import { Table, Thead, Tbody, Tr, Th, Td, Skeleton, TableContainer, Select } from '@chakra-ui/react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import dayjs from 'dayjs';
@@ -44,8 +43,10 @@ export default function Home() {
   const [grades, setGrades] = React.useState([]);
   const [selectedDate, setSelectedDate] = React.useState(initiallySelectedDate);
   const [schedule, setSchedule] = React.useState<ScheduleItem[]>([]);
-  const [semester, setSemester] = React.useState('1');
-  const [academicYear, setAcademicYear] = React.useState('2023-2024');
+  const [semesterGrades, setSemesterGrades] = React.useState('');
+  const [academicYearGrades, setAcademicYearGrades] = React.useState('');
+  const [semesterAttendance, setSemesterAttendance] = React.useState('');
+  const [academicYearAttendance, setAcademicYearAttendance] = React.useState('');
   const [loadingSchedule, setLoadingSchedule] = React.useState(true);
   const [attendance, setAttendance] = React.useState([]);
   const [groupedAttendance, setGroupedAttendance] = React.useState([]);
@@ -53,8 +54,8 @@ export default function Home() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    fetchGrades(semester, academicYear);
-  }, [semester, academicYear]);
+    fetchGrades(semesterGrades, academicYearGrades);
+  }, [semesterGrades, academicYearGrades]);
 
   const dayOfWeekMap: { [key: number]: string } = {
     1: 'Monday',
@@ -67,12 +68,12 @@ export default function Home() {
   };
 
   React.useEffect(() => {
-    if (semester && academicYear) {
-      fetchGrades();
+    if (semesterAttendance && academicYearAttendance) {
+      fetchAttendance();
     }
-  }, [semester, academicYear]);
+  }, [semesterAttendance, academicYearAttendance]);
 
-  const fetchGrades = async () => {
+  const fetchGrades = async (semester, academicYear) => {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
@@ -89,6 +90,30 @@ export default function Home() {
       setGrades(data);
     } catch (error) {
       console.error('Error fetching grades:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAttendance = async () => {
+    setLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/student/attedance`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        params: {
+          semester: semesterAttendance,
+          academicYear: academicYearAttendance
+        }
+      });
+      const data = response.data.data || [];
+      setAttendance(data);
+      const groupedData = groupAttendanceBySubject(data);
+      setGroupedAttendance(groupedData);
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
     } finally {
       setLoading(false);
     }
@@ -162,10 +187,6 @@ export default function Home() {
   }, [selectedDate]);
 
   React.useEffect(() => {
-    fetchGrades(semester, academicYear);
-  }, [semester, academicYear]);
-
-  React.useEffect(() => {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/global/announcements`, {
         headers: {
@@ -198,20 +219,7 @@ export default function Home() {
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       setUsername(localStorage.getItem('username') || '');
-      axios
-        .get(`${process.env.NEXT_PUBLIC_API_URL}/student/attedance`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        })
-        .then((response) => {
-          const data = response.data.data || [];
-          console.log('Fetched Attendance Data:', data); // Add logging
-          setAttendance(data);
-          const groupedData = groupAttendanceBySubject(data);
-          console.log('Grouped Attendance Data:', groupedData); // Add logging
-          setGroupedAttendance(groupedData);
-        });
+      fetchAttendance();
     }
   }, []);
 
@@ -274,6 +282,17 @@ export default function Home() {
                 </button>
               </span>
               <div className="flex flex-col justify-between border border-Gray-200 gap-4 rounded-xl bg-Base-white">
+                <div className="flex items-center p-3 gap-3">
+                  <Select placeholder="Pilih Semester" size="md" onChange={(e) => setSemesterGrades(e.target.value)}>
+                    <option value="1">Ganjil</option>
+                    <option value="2">Genap</option>
+                  </Select>
+                  <Select placeholder="Pilih Tahun Ajaran" size="md" onChange={(e) => setAcademicYearGrades(e.target.value)}>
+                    <option value="2023-2024">2023-2024</option>
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2025-2026">2025-2026</option>
+                  </Select>
+                </div>
                 <TableContainer className="">
                   <Table className="">
                     <Thead className="bg-Gray-50">
@@ -324,6 +343,17 @@ export default function Home() {
                 </button>
               </span>
               <div className="flex flex-col justify-between border border-Gray-200 gap-4 rounded-xl bg-Base-white">
+                <div className="flex items-center p-3 gap-3">
+                  <Select placeholder="Pilih Semester" size="md" onChange={(e) => setSemesterAttendance(e.target.value)}>
+                    <option value="1">Ganjil</option>
+                    <option value="2">Genap</option>
+                  </Select>
+                  <Select placeholder="Pilih Tahun Ajaran" size="md" onChange={(e) => setAcademicYearAttendance(e.target.value)}>
+                    <option value="2023-2024">2023-2024</option>
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2025-2026">2025-2026</option>
+                  </Select>
+                </div>
                 <TableContainer className="">
                   <Table variant="simple" className="">
                     <Thead>

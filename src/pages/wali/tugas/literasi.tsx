@@ -1,7 +1,7 @@
 import * as React from 'react';
 import AuthenticatedLayout from '@/components/layout/layoutWali/AuthenticatedLayout';
 import Seo from '@/components/Seo';
-import { Select, Table, Thead, Tbody, Tr, Th, Td, Spinner, useToast } from '@chakra-ui/react';
+import { Select, Table, Thead, Tbody, Tr, Th, Td, Spinner, useToast, Button } from '@chakra-ui/react';
 import SecondaryButton from '@/components/SecondaryButton';
 import { useRouter } from 'next/router';
 import axios from 'axios';
@@ -12,9 +12,28 @@ export default function Literasi() {
   const [literations, setLiterations] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
+  const [student, setStudent] = React.useState([]);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [sortOrder, setSortOrder] = React.useState('newest');
+  const itemsPerPage = 5;
 
   React.useEffect(() => {
     fetchLiterations();
+  }, [sortOrder]);
+
+  React.useEffect(() => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/parent/student`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then((response) => {
+        setStudent(response.data.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching student:', error);
+      });
   }, []);
 
   const fetchLiterations = async () => {
@@ -25,7 +44,13 @@ export default function Literasi() {
           Authorization: `Bearer ${token}`
         }
       });
-      setLiterations(response.data.data || []);
+      const data = response.data.data || [];
+      if (sortOrder === 'newest') {
+        data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      } else {
+        data.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      }
+      setLiterations(data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching literations:', error);
@@ -40,6 +65,18 @@ export default function Literasi() {
       });
     }
   };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleSortChange = (e) => {
+    setSortOrder(e.target.value);
+  };
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = literations.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(literations.length / itemsPerPage);
 
   if (loading) {
     return (
@@ -72,10 +109,7 @@ export default function Literasi() {
             <h1 className="text-lg font-semibold">Detail Pengumpulan</h1>
             <div className="flex justify-between gap-5">
               <h1 className="text-Gray-500">
-                Nama Anak : <span className="font-semibold text-Gray-900">Dominica</span>
-              </h1>
-              <h1 className="text-Gray-500">
-                Kelas : <span className="font-semibold text-Gray-900">VII A</span>
+                Nama Anak : <span className="font-semibold text-Gray-900">{student[0] ? student[0].name : 'Loading...'}</span>
               </h1>
             </div>
           </div>
@@ -84,10 +118,9 @@ export default function Literasi() {
               <label htmlFor="sort" className="text-sm font-medium text-Gray-700">
                 Urutkan Berdasarkan
               </label>
-              <Select placeholder="Kelas" size="md" name="sort" className="">
-                <option value="1">X</option>
-                <option value="2">XI</option>
-                <option value="3">XII</option>
+              <Select placeholder="Sort" size="md" name="sort" className="" onChange={handleSortChange}>
+                <option value="newest">Terbaru</option>
+                <option value="oldest">Terlama</option>
               </Select>
             </span>
           </div>
@@ -102,14 +135,14 @@ export default function Literasi() {
                 </Tr>
               </Thead>
               <Tbody>
-                {literations.length === 0 ? (
+                {currentItems.length === 0 ? (
                   <Tr>
                     <Td colSpan={5} className="text-center">
                       Tidak ada data literasi
                     </Td>
                   </Tr>
                 ) : (
-                  literations.map((item, index) => (
+                  currentItems.map((item, index) => (
                     <Tr key={index}>
                       <Td>{item.title}</Td>
                       <Td>{item.point}/50</Td>
@@ -127,6 +160,14 @@ export default function Literasi() {
                 )}
               </Tbody>
             </Table>
+          </div>
+          <div className="flex justify-between mt-4">
+            <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+              Previous
+            </Button>
+            <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+              Next
+            </Button>
           </div>
         </div>
       </AuthenticatedLayout>

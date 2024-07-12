@@ -60,7 +60,13 @@ export default function DetailDataDiri() {
         </Flex>
         {data.length > 0 ? (
           <Flex align="center" gap={5} p={7}>
-            <Avatar size="2xl" name={data[0].name} src="https://bit.ly/sage-adebayo" showBorder={true} shadow="lg" />
+            <Avatar
+              size="2xl"
+              name={data[0].name}
+              src={`https://ui-avatars.com/api/?name=${data[0].name}&size=35&background=random&color=fff`}
+              showBorder={true}
+              shadow="lg"
+            />
             <Box>
               <Text fontSize="3xl" fontWeight="semibold">
                 {data[0].name}
@@ -96,12 +102,7 @@ export default function DetailDataDiri() {
               </FormControl>
               <FormControl mt={4}>
                 <FormLabel>Provinsi Asal</FormLabel>
-                <Select placeholder={data[0].province} value={data[0].province} readOnly>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                  <option value="AB">AB</option>
-                  <option value="O">O</option>
-                </Select>
+                <Select placeholder={data[0].province} value={data[0].province} readOnly></Select>
               </FormControl>
               <FormControl mt={4}>
                 <FormLabel>Kabupaten Asal</FormLabel>

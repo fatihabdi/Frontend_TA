@@ -44,7 +44,7 @@ const NilaiList: React.FC = () => {
           Authorization: `Bearer ${token}`
         }
       });
-      setProfile(response.data.data || { name: '', nisn: '' });
+      setProfile(response.data.data[0] || { name: '', nisn: '' });
     } catch (error) {
       console.error('Error fetching profile:', error);
     }

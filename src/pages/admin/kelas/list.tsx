@@ -26,13 +26,22 @@ import PrimaryButton from '@/components/PrimaryButton';
 import SecondaryButton from '@/components/SecondaryButton';
 import { LuUser } from 'react-icons/lu';
 import axios from 'axios';
+import { MdClose } from 'react-icons/md';
+
+interface Teacher {
+  id: number;
+  teacher_name: string;
+  email: string;
+}
 
 export default function ListKelas() {
   const { isOpen: isFirstModalOpen, onOpen: onFirstModalOpen, onClose: onFirstModalClose } = useDisclosure();
   const { isOpen: isSecondModalOpen, onOpen: onSecondModalOpen, onClose: onSecondModalClose } = useDisclosure();
   const toast = useToast();
-
+  const [filteredTeachers, setFilteredTeachers] = React.useState<Teacher[] | null>(null);
+  const [selectedTeachers, setSelectedTeachers] = React.useState<Teacher[]>([]);
   const [kelas, setKelas] = React.useState([]);
+  const [searchTerm2, setSearchTerm2] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [newClassName, setNewClassName] = React.useState('');
   const [selectedClassId, setSelectedClassId] = React.useState<string | null>(null);
@@ -192,6 +201,29 @@ export default function ListKelas() {
     }
   };
 
+  const handleSelectTeacher = (teacher: Teacher) => {
+    setSelectedTeachers((prev) => {
+      const isAlreadySelected = prev.find((t) => t.id === teacher.id);
+      if (isAlreadySelected) {
+        return prev.filter((t) => t.id !== teacher.id); // Remove from selection
+      } else {
+        return [...prev, teacher]; // Add to selection
+      }
+    });
+    setSearchTerm2(''); // Reset search term after selecting a teacher
+    setFilteredTeachers(null); // Reset filtered teachers after selecting a teacher
+  };
+
+  const handleSearchChange2 = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm2(value);
+    if (value) {
+      setFilteredTeachers(teachers.filter((teacher) => teacher.name.toLowerCase().includes(value.toLowerCase())));
+    } else {
+      setFilteredTeachers(null);
+    }
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
@@ -211,7 +243,7 @@ export default function ListKelas() {
         <div className="w-full p-3 border rounded-md shadow-lg h-fit border-Gray-200 bg-Base-white">
           <div className="flex items-center justify-between p-3 lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">List Kelas</h1>
-            <PrimaryButton btnClassName="w-fit h-fit" onClick={onFirstModalOpen}>
+            <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={onFirstModalOpen}>
               Buat Kelas
             </PrimaryButton>
           </div>
@@ -280,6 +312,7 @@ export default function ListKelas() {
                       </Td>
                       <Td>
                         <SecondaryButton
+                          size="mini"
                           onClick={() => {
                             setSelectedClassId(item.id);
                             onSecondModalOpen();
@@ -346,19 +379,74 @@ export default function ListKelas() {
               <h1 className="text-lg font-semibold">Assign Wali Kelas</h1>
               <p className="text-sm font-light text-Gray-600">Assign Wali Kelas disini</p>
               <form action="" className="flex flex-col gap-3 pb-3 mt-3">
-                <div className="flex flex-col">
-                  <label htmlFor="teacher" className="text-sm text-Gray-600">
-                    Pilih Guru
-                  </label>
-                  <Select placeholder="Pilih Guru" size="md" name="teacher" onChange={(e) => setSelectedTeacherId(e.target.value)}>
-                    {teachers.map((teacher) => (
-                      <option key={teacher.id} value={teacher.id}>
-                        {teacher.name}
-                      </option>
-                    ))}
-                  </Select>
+                <div className="flex flex-col gap-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchTerm2}
+                      onChange={handleSearchChange2}
+                      className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500"
+                      placeholder="Search"
+                    />
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <FiSearch />
+                    </div>
+                  </div>
+                  <div className="flex flex-col py-3 overflow-y-auto h-fit">
+                    {filteredTeachers && filteredTeachers.length > 0 ? (
+                      filteredTeachers.map((teacher, index) => (
+                        <div
+                          className="flex items-center w-full gap-3 px-8 py-4 border-b justify-between border-Gray-200 cursor-pointer"
+                          key={index}
+                          onClick={() => handleSelectTeacher(teacher)}
+                        >
+                          <div className="flex items-center w-full gap-3">
+                            <img
+                              src={`https://ui-avatars.com/api/?name=${teacher.name}&background=random`}
+                              alt="Profile"
+                              width={40}
+                              height={40}
+                              className="rounded-full"
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-Gray-900">{teacher.name}</span>
+                              <span className="text-xs text-Gray-500">{teacher.email}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="hidden"></div>
+                    )}
+                  </div>
                 </div>
               </form>
+              <div className="flex flex-col py-3 overflow-y-auto h-fit">
+                {selectedTeachers.length > 0 ? (
+                  selectedTeachers.map((teacher, index) => (
+                    <div className="flex items-center w-full gap-3 px-8 py-4 border-b justify-between border-Gray-200" key={index}>
+                      <div className="flex items-center w-full gap-3">
+                        <img
+                          src={`https://ui-avatars.com/api/?name=${teacher.name}&background=random`}
+                          alt="Profile"
+                          width={40}
+                          height={40}
+                          className="rounded-full"
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-Gray-900">{teacher.name}</span>
+                          <span className="text-xs text-Gray-500">{teacher.email}</span>
+                        </div>
+                      </div>
+                      <MdClose className="cursor-pointer text-Gray-500" onClick={() => handleSelectTeacher(teacher)} />
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full">
+                    <span className="text-sm text-Gray-500">Belum ada guru yang dipilih</span>
+                  </div>
+                )}
+              </div>
             </ModalBody>
             <ModalFooter className="flex justify-center gap-3">
               <SecondaryButton onClick={onSecondModalClose} btnClassName="font-semibold">

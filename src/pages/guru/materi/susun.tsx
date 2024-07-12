@@ -1,29 +1,10 @@
 import * as React from 'react';
-import {
-  Avatar,
-  AvatarGroup,
-  Button,
-  Select,
-  Text,
-  Tag,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-  Spinner
-} from '@chakra-ui/react';
-import { PiFlagBannerBold } from 'react-icons/pi';
-import PrimaryButton from '@/components/PrimaryButton';
-import SecondaryButton from '@/components/SecondaryButton';
-import { MdAdd } from 'react-icons/md';
+import { Tag, Select, Text, Spinner } from '@chakra-ui/react';
+import { MdKeyboardArrowDown } from 'react-icons/md';
 import AuthenticatedLayout from '@/components/layout/layoutGuru/AuthenticatedLayout';
 import Seo from '@/components/Seo';
 import axios from 'axios';
-import { MdOutlineAddBox, MdKeyboardArrowDown } from 'react-icons/md';
+import { useRouter } from 'next/router';
 
 type Item = {
   id: string;
@@ -38,9 +19,8 @@ const Susun = () => {
   const [selectedSubject, setSelectedSubject] = React.useState('');
   const [winReady, setWinReady] = React.useState(false);
   const [expanded, setExpanded] = React.useState<string | null>(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [newItemContent, setNewItemContent] = React.useState<string>('');
   const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
 
   React.useEffect(() => {
     setWinReady(true);
@@ -78,7 +58,7 @@ const Susun = () => {
         id: matter.id,
         content: matter.title,
         created_at: matter.created_at, // Assuming the API provides a created_at field
-        sub: matter.content.map((subContent) => subContent.title)
+        sub: matter.content
       }));
       setItems(data);
     } catch (error) {
@@ -92,16 +72,6 @@ const Susun = () => {
     setExpanded(expanded === id ? null : id);
   };
 
-  const addItem = () => {
-    const newItem: Item = {
-      id: (Math.random() * 100000).toString(),
-      content: newItemContent,
-      created_at: new Date().toISOString()
-    };
-    setItems([...items, newItem]);
-    onClose();
-  };
-
   const handleSortChange = (e) => {
     const sortOrder = e.target.value;
     const sortedItems = [...items].sort((a, b) => {
@@ -112,6 +82,13 @@ const Susun = () => {
       }
     });
     setItems(sortedItems);
+  };
+
+  const handleSubItemClick = (id, subItem) => {
+    router.push({
+      pathname: `/guru/materi/${id}`,
+      query: { subitem: JSON.stringify(subItem) }
+    });
   };
 
   return (
@@ -168,12 +145,11 @@ const Susun = () => {
                     <>
                       {sub?.map((subItem, subIndex) => (
                         <div key={subIndex} className="p-5 border-b border-Gray-200">
-                          <h1 className="font-bold text-md">Content for {subItem}</h1>
+                          <button onClick={() => handleSubItemClick(id, subItem)}>
+                            <h1 className="font-bold text-md">{subItem.title}</h1>
+                          </button>
                         </div>
                       ))}
-                      <button className="flex items-center w-full gap-5 p-5 border-b border-Gray-200">
-                        <MdOutlineAddBox className="text-xl" /> <h1 className="font-bold text-md">Tambah Sesi</h1>
-                      </button>
                     </>
                   )}
                 </div>
@@ -181,47 +157,7 @@ const Susun = () => {
             </div>
           )
         )}
-        <div className="flex justify-end p-5">
-          <Button leftIcon={<MdAdd />} colorScheme="gray" onClick={onOpen} variant="outline" mr={2}>
-            Tambah Materi
-          </Button>
-        </div>
       </div>
-      <Modal isOpen={isOpen} onClose={onClose} isCentered>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>
-            <div className="p-2 rounded-md w-[36px] shadow-md border border-Gray-200 bg-Base-white">
-              <PiFlagBannerBold className="rotate-0" />
-            </div>
-          </ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <h1 className="text-lg font-semibold">Tambah Materi</h1>
-            <p className="text-sm font-light text-Gray-600">Pilih Materi yang akan ditampilkan</p>
-            <form action="" className="mt-3">
-              <label htmlFor="judul" className="text-sm text-Gray-600">
-                Referensi Materi
-              </label>
-              <Select placeholder="Pilih Materi" size="md" name="sort" className="mt-3" onChange={(e) => setNewItemContent(e.target.value)}>
-                {items.map((item) => (
-                  <option key={item.id} value={item.content}>
-                    {item.content}
-                  </option>
-                ))}
-              </Select>
-            </form>
-          </ModalBody>
-          <ModalFooter className="flex justify-center gap-3">
-            <SecondaryButton onClick={onClose} btnClassName="font-semibold">
-              Batal
-            </SecondaryButton>
-            <PrimaryButton onClick={addItem} btnClassName="font-semibold">
-              Tambahkan
-            </PrimaryButton>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
     </AuthenticatedLayout>
   );
 };

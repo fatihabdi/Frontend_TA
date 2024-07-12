@@ -89,6 +89,10 @@ export default function ChecklistKehadiran() {
     return new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
   };
 
+  const filteredAttendance = selectedDate
+    ? attendance.filter((att) => new Date(att.attendace_at).toDateString() === new Date(selectedDate).toDateString())
+    : attendance;
+
   return (
     <div className="overflow-x-auto">
       <AuthenticatedLayout>
@@ -165,7 +169,7 @@ export default function ChecklistKehadiran() {
                   </Thead>
                   <Tbody>
                     {students.map((student, index) => {
-                      const studentAttendance = attendance.find((att) => att.student_id === student.id) || {};
+                      const studentAttendance = filteredAttendance.find((att) => att.student_id === student.id) || {};
                       return (
                         <Tr key={index}>
                           <Td>{student.name}</Td>
@@ -176,9 +180,13 @@ export default function ChecklistKehadiran() {
                               <Tag colorScheme="green" borderRadius="full" size="sm">
                                 <TagLabel>Hadir</TagLabel>
                               </Tag>
+                            ) : studentAttendance.attendace_status === 'Sakit' || studentAttendance.attendace_status === 'Izin' ? (
+                              <Tag colorScheme="blue" borderRadius="full" size="sm">
+                                <TagLabel>{studentAttendance.attendace_status}</TagLabel>
+                              </Tag>
                             ) : (
                               <Tag colorScheme="red" borderRadius="full" size="sm">
-                                <TagLabel>Tidak Hadir</TagLabel>
+                                <TagLabel>Alpha</TagLabel>
                               </Tag>
                             )}
                           </Td>

@@ -2,20 +2,17 @@ import Seo from '@/components/Seo';
 import AuthenticatedLayout from '@/components/layout/layoutWali/AuthenticatedLayout';
 import * as React from 'react';
 import { FiSearch } from 'react-icons/fi';
-import { Table, Thead, Tr, Th, Tbody, Td, TableContainer, Tag, TagLabel, Select } from '@chakra-ui/react';
+import { Table, Thead, Tr, Th, Tbody, Td, TableContainer, Tag, TagLabel, Select, Button } from '@chakra-ui/react';
 import axios from 'axios';
 import { useToast } from '@chakra-ui/react';
 
 export default function Hasil() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [hasil, setHasil] = React.useState([]);
+  const [filteredHasil, setFilteredHasil] = React.useState([]);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
   const toast = useToast();
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  console.log(hasil);
 
   React.useEffect(() => {
     axios
@@ -27,6 +24,7 @@ export default function Hasil() {
       .then((response) => {
         if (response.data && response.data.data) {
           setHasil(response.data.data);
+          setFilteredHasil(response.data.data);
         }
       })
       .catch((error) => {
@@ -40,6 +38,29 @@ export default function Hasil() {
         });
       });
   }, [toast]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    filterResults(e.target.value);
+  };
+
+  const filterResults = (searchTerm: string) => {
+    const filtered = hasil.filter(
+      (item) =>
+        item.quiz_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        new Date(item.submit_at).toLocaleDateString().includes(searchTerm)
+    );
+    setFilteredHasil(filtered);
+    setCurrentPage(1); // Reset to first page after filtering
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredHasil.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(filteredHasil.length / itemsPerPage);
 
   return (
     <div>
@@ -61,11 +82,6 @@ export default function Hasil() {
                   <FiSearch />
                 </div>
               </div>
-              <Select placeholder="Kelas" size="md" className="w-fit">
-                <option value="1">X</option>
-                <option value="2">XI</option>
-                <option value="3">XII</option>
-              </Select>
             </div>
           </div>
           <TableContainer className="m-3 border rounded-lg shadow-sm ">
@@ -80,34 +96,52 @@ export default function Hasil() {
                 </Tr>
               </Thead>
               <Tbody>
-                {hasil.map((item, index) => (
-                  <Tr key={index}>
-                    <Td>{new Date(item.submit_at).toLocaleDateString()}</Td>
-                    <Td className="flex flex-col">
-                      <span>{item.quiz_name}</span>
-                    </Td>
-                    <Td>{(item.grade / 100) * 100}%</Td>
-                    <Td>{item.grade}/100</Td>
-                    <Td>
-                      {item.status === 'submitted' ? (
-                        <Tag colorScheme="green" borderRadius="full" size="sm">
-                          <TagLabel>Submitted</TagLabel>
-                        </Tag>
-                      ) : item.status === 'waiting for graded' ? (
-                        <Tag colorScheme="orange" borderRadius="full" size="sm">
-                          <TagLabel>Waiting For Graded</TagLabel>
-                        </Tag>
-                      ) : (
-                        <Tag colorScheme="red" borderRadius="full" size="sm">
-                          <TagLabel>Failed</TagLabel>
-                        </Tag>
-                      )}
+                {currentItems.length > 0 ? (
+                  currentItems.map((item, index) => (
+                    <Tr key={index}>
+                      <Td>{new Date(item.submit_at).toLocaleDateString()}</Td>
+                      <Td className="flex flex-col">
+                        <span>{item.quiz_name}</span>
+                      </Td>
+                      <Td>{(item.grade / 100) * 100}%</Td>
+                      <Td>{item.grade}/100</Td>
+                      <Td>
+                        {item.status === 'submitted' ? (
+                          <Tag colorScheme="green" borderRadius="full" size="sm">
+                            <TagLabel>Submitted</TagLabel>
+                          </Tag>
+                        ) : item.status === 'waiting for graded' ? (
+                          <Tag colorScheme="orange" borderRadius="full" size="sm">
+                            <TagLabel>Waiting For Graded</TagLabel>
+                          </Tag>
+                        ) : (
+                          <Tag colorScheme="red" borderRadius="full" size="sm">
+                            <TagLabel>Failed</TagLabel>
+                          </Tag>
+                        )}
+                      </Td>
+                    </Tr>
+                  ))
+                ) : (
+                  <Tr>
+                    <Td colSpan={5} className="text-center">
+                      Tidak ada hasil ditemukan
                     </Td>
                   </Tr>
-                ))}
+                )}
               </Tbody>
             </Table>
           </TableContainer>
+          {totalPages > 1 && (
+            <div className="flex justify-between mt-4">
+              <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                Previous
+              </Button>
+              <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       </AuthenticatedLayout>
     </div>

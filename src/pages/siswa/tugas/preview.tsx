@@ -6,11 +6,9 @@ import { DayPicker, DayMouseEventHandler } from 'react-day-picker';
 import Holidays from 'date-holidays';
 import { isSameDay } from 'date-fns';
 import PrimaryButton from '@/components/PrimaryButton';
-import { Select, useDisclosure, useToast } from '@chakra-ui/react';
+import { Select, useDisclosure, useToast, Button } from '@chakra-ui/react';
 import { FiSearch, FiCalendar, FiBook } from 'react-icons/fi';
 import { format } from 'date-fns';
-import { Button } from '@chakra-ui/react';
-import { PiListBulletsBold } from 'react-icons/pi';
 import axios from 'axios';
 
 export default function PreviewTugas() {
@@ -18,11 +16,14 @@ export default function PreviewTugas() {
   const [disabledDays, setDisabledDays] = React.useState([]);
   const [selectedDates, setSelectedDates] = React.useState([initiallySelectedDate]);
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [selectedSubject, setSelectedSubject] = React.useState(''); // State to hold selected subject
+  const [selectedSubject, setSelectedSubject] = React.useState('');
   const calendarContainerRef = React.useRef<HTMLDivElement>(null);
   const toast = useToast();
   const [tasks, setTasks] = React.useState([]);
-  const [subjects, setSubjects] = React.useState([]); // State to hold subjects
+  const [subjects, setSubjects] = React.useState([]);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [submissionStatuses, setSubmissionStatuses] = React.useState({});
+  const tasksPerPage = 5;
   const router = useRouter();
 
   React.useEffect(() => {
@@ -41,6 +42,9 @@ export default function PreviewTugas() {
       .then((response) => {
         if (response.data && response.data.data) {
           setTasks(response.data.data);
+          response.data.data.forEach((task) => {
+            checkSubmissionStatus(task.id);
+          });
         } else {
           setTasks([]);
         }
@@ -57,7 +61,6 @@ export default function PreviewTugas() {
         });
       });
 
-    // Fetch subjects
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/student/class/subjects`, {
         headers: {
@@ -66,7 +69,6 @@ export default function PreviewTugas() {
       })
       .then((response) => {
         if (response.data && response.data.data) {
-          // Extract unique subject names
           const uniqueSubjects = Array.from(new Set(response.data.data.map((subject) => subject.subject_name)));
           setSubjects(uniqueSubjects);
         } else {
@@ -78,6 +80,26 @@ export default function PreviewTugas() {
         setSubjects([]);
       });
   }, []);
+
+  const checkSubmissionStatus = (taskId) => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/student/task/${taskId}/assignment`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then((response) => {
+        if (response.data && response.data.data) {
+          setSubmissionStatuses((prevStatuses) => ({
+            ...prevStatuses,
+            [taskId]: response.data.data.submit_at
+          }));
+        }
+      })
+      .catch((error) => {
+        console.error(`Error fetching submission status for task ${taskId}:`, error);
+      });
+  };
 
   const handleDayClick: DayMouseEventHandler = (day) => {
     if (selectedDates.some((selectedDate) => isSameDay(selectedDate, day))) {
@@ -102,12 +124,27 @@ export default function PreviewTugas() {
     });
   };
 
-  // Filter tasks by subject and search term
   const filteredTasks = tasks.filter((task) => {
     const matchesSearchTerm = task.title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = selectedSubject === '' || task.subject === selectedSubject;
     return matchesSearchTerm && matchesSubject;
   });
+
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+
+  const currentTasks = filteredTasks.slice((currentPage - 1) * tasksPerPage, currentPage * tasksPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
 
   return (
     <div>
@@ -127,24 +164,7 @@ export default function PreviewTugas() {
               ))}
             </Select>
           </div>
-          <DayPicker
-            mode="multiple"
-            selected={selectedDates}
-            onDayClick={handleDayClick}
-            disabled={disabledDays}
-            styles={{
-              head_cell: {
-                width: `${calendarContainerRef.current?.clientWidth ?? 0}px`
-              },
-              table: {
-                maxWidth: 'none'
-              },
-              day: {
-                width: '',
-                margin: 'auto'
-              }
-            }}
-          />
+
           <div className="mt-4">
             <div className="relative">
               <input
@@ -159,23 +179,26 @@ export default function PreviewTugas() {
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between my-4">
-            <Button variant="outline">
-              <PiListBulletsBold className="text-lg" />
-            </Button>
-            <Button variant="outline">Cek Semua Tugas</Button>
-          </div>
+
           <div className="grid grid-cols-1 gap-4 mt-4">
-            {filteredTasks.map((task) => (
+            {currentTasks.map((task) => (
               <div key={task.id} className="p-4 border rounded-md shadow-sm">
                 <div className="flex justify-between">
                   <div>
                     <h2 className="font-semibold text-[#6941C6]">Tugas</h2>
                     <h3 className="mt-2 text-lg font-bold">{task.title}</h3>
                   </div>
-                  <PrimaryButton btnClassName="w-fit h-fit" onClick={() => handleTaskSubmit(task.id, task.title)}>
-                    Submit Tugas
-                  </PrimaryButton>
+                  <div className="flex items-center gap-2">
+                    {submissionStatuses[task.id] ? (
+                      <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => handleTaskSubmit(task.id, task.title)}>
+                        Edit Tugas
+                      </PrimaryButton>
+                    ) : (
+                      <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => handleTaskSubmit(task.id, task.title)}>
+                        Submit Tugas
+                      </PrimaryButton>
+                    )}
+                  </div>
                 </div>
                 <div className="justify-between lg:flex">
                   <div className="flex gap-3">
@@ -198,6 +221,16 @@ export default function PreviewTugas() {
             ))}
             {filteredTasks.length === 0 && <div className="text-center py-5 text-Gray-600">Tidak ada tugas ditemukan</div>}
           </div>
+          {totalPages > 1 && (
+            <div className="flex justify-between mt-4">
+              <Button onClick={handlePrevPage} disabled={currentPage === 1}>
+                Previous
+              </Button>
+              <Button onClick={handleNextPage} disabled={currentPage === totalPages}>
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       </AuthenticatedLayout>
     </div>

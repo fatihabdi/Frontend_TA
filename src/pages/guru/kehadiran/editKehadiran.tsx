@@ -152,9 +152,13 @@ export default function EditKehadiran() {
     const token = localStorage.getItem('token');
     for (const student of user) {
       try {
-        if (student.attendance_id) {
+        const existingAttendance = attendance.find(
+          (att) => att.student_id === student.id && new Date(att.attendace_at).toDateString() === new Date(selectedDate).toDateString()
+        );
+
+        if (existingAttendance) {
           await axios.put(
-            `${process.env.NEXT_PUBLIC_API_URL}/teacher/subject/attendance/${student.attendance_id}/update`,
+            `${process.env.NEXT_PUBLIC_API_URL}/teacher/subject/attendance/${existingAttendance.id}/update`,
             {
               attedance_status: student.status
             },
@@ -162,25 +166,25 @@ export default function EditKehadiran() {
               headers: { Authorization: `Bearer ${token}` }
             }
           );
-          router.push('/guru/kehadiran/checklistKehadiran');
         } else {
           await axios.post(
             `${process.env.NEXT_PUBLIC_API_URL}/teacher/subject/${selectedSubject}/attendance`,
             {
               student_id: student.id,
-              attendace_status: student.status
+              attendace_status: student.status,
+              attendace_at: selectedDate
             },
             {
               headers: { Authorization: `Bearer ${token}` }
             }
           );
-          router.push('/guru/kehadiran/checklistKehadiran');
         }
       } catch (error) {
         console.error(`Error updating attendance for student ${student.name}:`, error);
       }
     }
     onClose();
+    router.push('/guru/kehadiran/checklistKehadiran');
   };
 
   const countUser = user.length;
@@ -188,7 +192,7 @@ export default function EditKehadiran() {
   return (
     <div>
       <AuthenticatedLayout>
-        <Seo templateTitle="Home" />
+        <Seo templateTitle="Edit Kehadiran" />
         <div className="w-full h-full rounded-md shadow-lg bg-Base-white">
           <div className="flex items-center justify-between p-4">
             <h1 className="flex items-center gap-2 text-lg font-semibold">
@@ -231,7 +235,6 @@ export default function EditKehadiran() {
                     <Th>Nomor Induk</Th>
                     <Th>Email</Th>
                     <Th>Status</Th>
-                    <Th>Keterangan</Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -253,15 +256,6 @@ export default function EditKehadiran() {
                             </div>
                           ))}
                         </RadioGroup>
-                      </Td>
-                      <Td>
-                        <Input
-                          variant="unstyled"
-                          placeholder="Berikan Keterangan"
-                          value={item.keterangan}
-                          onChange={(e) => setKeteranganHandler(index, e.target.value)}
-                          onBlur={() => handleBlur(index)}
-                        />
                       </Td>
                     </Tr>
                   ))}

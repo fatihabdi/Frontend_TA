@@ -146,7 +146,7 @@ export default function DetailTugas() {
                 <tr>
                   <td></td>
                   <td>
-                    <PrimaryButton btnClassName="" onClick={handleSubmit}>
+                    <PrimaryButton btnClassName="" size="mini" onClick={handleSubmit}>
                       Beri Nilai Tugas Ini
                     </PrimaryButton>
                   </td>

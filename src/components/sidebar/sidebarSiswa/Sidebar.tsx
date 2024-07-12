@@ -40,8 +40,8 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="h-fit lg:w-[272px] lg:sticky">
-      <div className="lg:w-[272px] flex flex-col lg:items-center h-fit py-8 bg-white">
+    <div className="h-screen lg:w-[272px] lg:sticky">
+      <div className="lg:w-[272px] flex flex-col lg:items-center h-screen py-8 bg-white">
         <div className="flex justify-between px-7 lg:items-center lg:justify-center">
           <div className="flex gap-2 lg:items-center lg:justify-center">
             <Image src={Logo} alt="Logo" width={32} />
@@ -51,7 +51,10 @@ export default function Sidebar() {
             <RiMenu2Line className="text-3xl" />
           </button>
         </div>
-        <div id="sidebar" className={`lg:block place-content-between ${sidebarVisible ? 'block' : 'hidden'}`}>
+        <div
+          id="sidebar"
+          className={`lg:flex lg:h-full lg:flex-col lg:justify-between place-content-between ${sidebarVisible ? 'block' : 'hidden'}`}
+        >
           <div className="flex flex-col items-start flex-auto w-full gap-2 px-4 py-10">
             {SidebarData.map((item, index) => {
               return <SubMenu item={item} key={index} />;
@@ -59,18 +62,6 @@ export default function Sidebar() {
           </div>
           <div>
             <div className="flex flex-col items-center w-full gap-4 px-4 font-medium text-md">
-              <button className="flex items-center w-full gap-4 rounded-md hover:bg-Gray-50 h-[40px]" onClick={handleClick}>
-                <div>
-                  <LuLifeBuoy />
-                </div>
-                <div className="text-md">Support</div>
-              </button>
-              <button className="flex items-center w-full gap-4 rounded-md hover:bg-Gray-50 h-[40px]" onClick={handleClick}>
-                <div>
-                  <FiSettings />
-                </div>
-                <div className="text-md">Settings</div>
-              </button>
               <div className="mx-auto border-t w-full border-[#BBBBBB]">
                 <div className="flex items-center gap-4 mt-6">
                   <button className="flex items-center gap-4" onClick={() => router.push('/siswa/profile')}>

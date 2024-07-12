@@ -74,12 +74,12 @@ export const SidebarData = (isHomeroomTeacher: boolean) =>
       iconOpened: <RiArrowUpSLine />,
       subNav: [
         {
-          title: 'Preview Materi',
+          title: 'Buat Materi',
           path: '/guru/materi/preview',
           icon: <GoDotFill />
         },
         {
-          title: 'Susun Materi',
+          title: 'Preview Materi',
           path: '/guru/materi/susun',
           icon: <GoDotFill />
         }

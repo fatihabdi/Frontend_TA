@@ -237,7 +237,6 @@ export default function Home() {
                         <Th>No</Th>
                         <Th>Nama Mata Pelajaran</Th>
                         <Th>Semester</Th>
-                        <Th></Th>
                       </Tr>
                     </Thead>
                     <Tbody>
@@ -246,14 +245,6 @@ export default function Home() {
                           <Th>{index + 1}</Th>
                           <Th>{item.name}</Th>
                           <Th>{item.semester}</Th>
-                          <Th>
-                            <SecondaryButton
-                              onClick={() => router.push(`/admin/mata-pelajaran/list`)}
-                              btnClassName="w-fit h-fit text-sm py-2"
-                            >
-                              Detail
-                            </SecondaryButton>
-                          </Th>
                         </Tr>
                       ))}
                     </Tbody>

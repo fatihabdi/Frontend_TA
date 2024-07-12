@@ -162,7 +162,12 @@ export default function PrestasiList() {
                         colorScheme="gray"
                         variant="outline"
                         size="md"
-                        onClick={() => router.push(`/siswa/prestasi/detail/${item.id}`)}
+                        onClick={() =>
+                          router.push({
+                            pathname: `/siswa/prestasi/${item.id}`,
+                            query: { data: JSON.stringify(item) }
+                          })
+                        }
                       >
                         Details
                       </Button>

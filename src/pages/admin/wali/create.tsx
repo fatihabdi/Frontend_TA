@@ -240,11 +240,6 @@ export default function ListWali() {
                           </div>
                         </Td>
                         <Td>{item.email}</Td>
-                        <Td>
-                          <SecondaryButton btnClassName="font-semibold w-fit h-fit" onClick={onFirstModalOpen}>
-                            Edit
-                          </SecondaryButton>
-                        </Td>
                       </Tr>
                     ))}
                 </Tbody>

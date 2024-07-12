@@ -245,7 +245,7 @@ export default function ListSiswa() {
                         <Td>{item.email}</Td>
                         <Td>{item.class_name ? item.class_name : '-'}</Td>
                         <Td>
-                          <SecondaryButton btnClassName="font-semibold w-fit h-fit" onClick={() => handleAssignClass(item)}>
+                          <SecondaryButton size="mini" btnClassName="font-semibold w-fit h-fit" onClick={() => handleAssignClass(item)}>
                             Assign Kelas
                           </SecondaryButton>
                         </Td>

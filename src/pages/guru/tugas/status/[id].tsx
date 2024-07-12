@@ -64,17 +64,7 @@ export default function Status() {
         <div className="w-full p-3 rounded-md shadow-lg h-fit bg-Base-white">
           <div className="flex flex-col justify-between gap-5 p-3 lg:flex-row lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">Detail Pengumpulan</h1>
-            <div className="flex flex-col lg:flex-row gap-7">
-              <h1 className="font-semibold text-Gray-600">
-                <span className="font-medium text-Gray-500">Deadline Pengumpulan :</span> January 6, 2023 11:59 AM
-              </h1>
-              <h1 className="font-semibold text-Gray-600">
-                <span className="font-medium text-Gray-500">Total Points :</span> 50
-              </h1>
-              <h1 className="font-semibold text-Gray-600">
-                <span className="font-medium text-Gray-500">Point Minimum Lulus :</span> 25
-              </h1>
-            </div>
+            
           </div>
           <div className="flex flex-col gap-4 px-3 py-6">
             <label htmlFor="sort" className="text-sm font-medium text-Gray-700">

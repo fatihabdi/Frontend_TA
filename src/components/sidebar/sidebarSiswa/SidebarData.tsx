@@ -54,6 +54,11 @@ export const SidebarData = [
         icon: <GoDotFill />
       },
       {
+        title: 'Hasil Tugas',
+        path: '/siswa/tugas/hasil',
+        icon: <GoDotFill />
+      },
+      {
         title: 'Literasi',
         path: '/siswa/tugas/literasi',
         icon: <GoDotFill />

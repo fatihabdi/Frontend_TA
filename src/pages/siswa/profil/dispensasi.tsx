@@ -172,7 +172,7 @@ const Dispensasi: React.FC = () => {
           <div className="flex flex-col justify-between gap-5 p-3 lg:flex-row lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">Daftar Dispensasi</h1>
             <div className="flex items-center gap-2">
-              <PrimaryButton btnClassName="w-fit h-fit py-2" onClick={onFirstModalOpen}>
+              <PrimaryButton btnClassName="w-fit h-fit py-2" size="mini" onClick={onFirstModalOpen}>
                 Ajukan Dispensasi
               </PrimaryButton>
             </div>

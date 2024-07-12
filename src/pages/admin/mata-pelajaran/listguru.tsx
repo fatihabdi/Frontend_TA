@@ -154,7 +154,6 @@ export default function ListGuru() {
                   <Tr>
                     <Th>Nama Guru</Th>
                     <Th>Mata Pelajaran</Th>
-                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -177,14 +176,6 @@ export default function ListGuru() {
                           </div>
                         </Td>
                         <Td>{item.subject_name}</Td>
-                        <Td>
-                          <SecondaryButton
-                            btnClassName="font-semibold w-fit h-fit"
-                            onClick={() => router.push(`/materi/literasi/${item.id}`)}
-                          >
-                            Preview
-                          </SecondaryButton>
-                        </Td>
                       </Tr>
                     ))}
                 </Tbody>

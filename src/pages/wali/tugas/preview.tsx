@@ -18,6 +18,8 @@ export default function PreviewTugas() {
   const [tasks, setTasks] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const tasksPerPage = 5;
   const calendarContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -62,7 +64,20 @@ export default function PreviewTugas() {
     setSearchTerm(event.target.value);
   };
 
+  const handleNextPage = () => {
+    if (currentPage < Math.ceil(filteredTasks.length / tasksPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   const filteredTasks = tasks.filter((task) => task.title.toLowerCase().includes(searchTerm.toLowerCase()));
+  const currentTasks = filteredTasks.slice((currentPage - 1) * tasksPerPage, currentPage * tasksPerPage);
 
   return (
     <div>
@@ -73,30 +88,8 @@ export default function PreviewTugas() {
             <div className="w-full">
               <h1 className="text-lg font-semibold">Daftar Tugas</h1>
             </div>
-            <Select placeholder="Kelas" size="md" className="w-fit">
-              <option value="1">X</option>
-              <option value="2">XI</option>
-              <option value="3">XII</option>
-            </Select>
           </div>
-          <DayPicker
-            mode="multiple"
-            selected={selectedDates}
-            onDayClick={handleDayClick}
-            disabled={disabledDays}
-            styles={{
-              head_cell: {
-                width: `${calendarContainerRef.current?.clientWidth ?? 0}px`
-              },
-              table: {
-                maxWidth: 'none'
-              },
-              day: {
-                width: '',
-                margin: 'auto'
-              }
-            }}
-          />
+
           <div className="mt-4">
             <div className="relative">
               <input
@@ -111,12 +104,7 @@ export default function PreviewTugas() {
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between my-4">
-            <Button variant="outline">
-              <PiListBulletsBold className="text-lg" />
-            </Button>
-            <Button variant="outline">Cek Semua Tugas</Button>
-          </div>
+
           <div className="grid grid-cols-1 gap-4 mt-4">
             {loading ? (
               <>
@@ -128,8 +116,8 @@ export default function PreviewTugas() {
               </>
             ) : error ? (
               <div className="text-center py-5 text-Gray-600">{error}</div>
-            ) : filteredTasks.length > 0 ? (
-              filteredTasks.map((task) => (
+            ) : currentTasks.length > 0 ? (
+              currentTasks.map((task) => (
                 <div key={task.id} className="p-4 border rounded-md shadow-sm">
                   <div className="flex justify-between">
                     <div>
@@ -164,6 +152,14 @@ export default function PreviewTugas() {
             ) : (
               <div className="text-center py-5 text-Gray-600">Tidak ada tugas yang tersedia.</div>
             )}
+          </div>
+          <div className="flex justify-between mt-4">
+            <Button onClick={handlePrevPage} disabled={currentPage === 1}>
+              Previous
+            </Button>
+            <Button onClick={handleNextPage} disabled={currentPage >= Math.ceil(filteredTasks.length / tasksPerPage)}>
+              Next
+            </Button>
           </div>
         </div>
       </AuthenticatedLayout>

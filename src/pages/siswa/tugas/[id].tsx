@@ -23,16 +23,21 @@ import { useEffect, useState } from 'react';
 
 export default function Tugas() {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isEditable, setIsEditable] = useState(true);
+  const [feedback, setFeedback] = useState('Menunggu untuk dinilai guru');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const router = useRouter();
   const { id, title } = router.query;
   const [submission, setSubmission] = useState('');
   const [username, setUsername] = useState('');
+  const [assignmentId, setAssignmentId] = useState(null);
 
   useEffect(() => {
     if (!id || !title) {
       router.push(`/siswa/tugas`);
+    } else {
+      checkAssignmentStatus();
     }
   }, [id, title]);
 
@@ -43,17 +48,51 @@ export default function Tugas() {
     }
   }, []);
 
-  const handleSubmit = () => {
+  const checkAssignmentStatus = () => {
     axios
-      .post(
-        `${process.env.NEXT_PUBLIC_API_URL}/student/task/${id}/assignment`,
-        { submission },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+      .get(`${process.env.NEXT_PUBLIC_API_URL}/student/task/${id}/assignment`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      })
+      .then((response) => {
+        if (response.data && response.data.data) {
+          setIsSubmitted(true);
+          setAssignmentId(response.data.data.id);
+          setSubmission(response.data.data.submission || '');
+          setFeedback(response.data.data.feedback || 'Menunggu untuk dinilai guru');
+          if (response.data.data.feedback !== 'Menunggu untuk dinilai guru') {
+            setIsEditable(false);
           }
         }
-      )
+      })
+      .catch((error) => {
+        console.error('Error fetching assignment status:', error);
+      });
+  };
+
+  const handleSubmit = () => {
+    const apiCall = isSubmitted
+      ? axios.put(
+          `${process.env.NEXT_PUBLIC_API_URL}/student/task/assignment/${assignmentId}/update`,
+          { submission },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        )
+      : axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/student/task/${id}/assignment`,
+          { submission },
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+    apiCall
       .then(() => {
         setIsSubmitted(true);
         toast({
@@ -64,6 +103,9 @@ export default function Tugas() {
           isClosable: true
         });
         onClose();
+        if (!assignmentId) {
+          checkAssignmentStatus();
+        }
       })
       .catch((error) => {
         console.error('Error submitting task:', error);
@@ -83,12 +125,14 @@ export default function Tugas() {
       <div className="w-full p-3 border rounded-md shadow-lg h-fit border-Gray-200 bg-Base-white">
         <div className="flex flex-col justify-between gap-5 p-3 lg:border-b lg:items-center lg:flex-row lg:border-Gray-200">
           <h1 className="font-semibold ">{title}</h1>
-          {isSubmitted ? (
-            <PrimaryButton btnClassName="w-fit h-fit">Edit Tugas</PrimaryButton>
-          ) : (
+          {isEditable ? (
             <PrimaryButton btnClassName="w-fit h-fit" onClick={onOpen}>
-              Submit Tugas
+              {isSubmitted ? 'Edit Tugas' : 'Submit Tugas'}
             </PrimaryButton>
+          ) : (
+            <Tag className="" variant="outline" colorScheme="green" borderRadius="full">
+              <TagLabel>Sudah Dinilai</TagLabel>
+            </Tag>
           )}
         </div>
         <div className="p-3">
@@ -111,7 +155,7 @@ export default function Tugas() {
           </div>
           <div className="flex flex-col py-5 lg:flex-row lg:gap-10">
             <h3 className="text-sm font-semibold">Status Penilaian</h3>
-            <p className="text-Gray-500">{isSubmitted ? 'Belum Dinilai' : 'Belum Dinilai'}</p>
+            <p className="text-Gray-500">{feedback !== 'Menunggu untuk dinilai guru' ? 'Sudah Dinilai' : 'Belum Dinilai'}</p>
           </div>
           <div className="flex flex-col py-5 lg:flex-row lg:gap-10">
             <h3 className="text-sm font-semibold">Deadline Tugas</h3>
@@ -132,11 +176,8 @@ export default function Tugas() {
             </div>
             <div className="flex flex-col py-5 lg:flex-row lg:gap-10">
               <h3 className="text-sm font-medium">Link Pengumpulan</h3>
-              <a
-                href="https://docs.google.com/document/d/1pzgKrXc05fyH3H9OuwcNPDJED0vIK2oJ8NhvJCW3xKo/edit?usp=drive_link"
-                className="text-blue-500 underline"
-              >
-                https://docs.google.com/document/d/1pzgKrXc05fyH3H9OuwcNPDJED0vIK2oJ8NhvJCW3xKo/edit?usp=drive_link
+              <a href={submission} className="text-blue-500 underline">
+                {submission}
               </a>
             </div>
           </div>
@@ -163,6 +204,7 @@ export default function Tugas() {
                 value={submission}
                 onChange={(e) => setSubmission(e.target.value)}
                 className="w-full p-2 mt-2 mb-2 border-2 rounded-md border-Gray-300"
+                disabled={!isEditable}
               />
             </form>
           </ModalBody>
@@ -170,9 +212,11 @@ export default function Tugas() {
             <SecondaryButton onClick={onClose} btnClassName="font-semibold">
               Batal
             </SecondaryButton>
-            <PrimaryButton onClick={handleSubmit} btnClassName="font-semibold">
-              Submit Tugas
-            </PrimaryButton>
+            {isEditable && (
+              <PrimaryButton onClick={handleSubmit} btnClassName="font-semibold">
+                {isSubmitted ? 'Update Tugas' : 'Submit Tugas'}
+              </PrimaryButton>
+            )}
           </ModalFooter>
         </ModalContent>
       </Modal>
