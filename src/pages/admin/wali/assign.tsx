@@ -27,14 +27,17 @@ import PrimaryButton from '@/components/PrimaryButton';
 import axios from 'axios';
 import { MdClose } from 'react-icons/md';
 import { LuBookOpen } from 'react-icons/lu';
+import { useRouter } from 'next/router';
 
 export default function ListWali() {
   const toast = useToast();
+  const router = useRouter();
   const { isOpen: isFirstModalOpen, onOpen: onFirstModalOpen, onClose: onFirstModalClose } = useDisclosure();
   const [parent, setParent] = React.useState([]);
   const [students, setStudents] = React.useState([]);
   const [filteredStudents, setFilteredStudents] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTermModal, setSearchTermModal] = React.useState('');
   const [selectedStudent, setSelectedStudent] = React.useState(null);
   const [selectedParent, setSelectedParent] = React.useState(null);
   const [loadingParents, setLoadingParents] = React.useState(true);
@@ -44,7 +47,7 @@ export default function ListWali() {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/admin/student/all`, {
         headers: {
-          Authorization: `${localStorage.getItem('token')}`
+          Authorization: localStorage.getItem('token')
         }
       })
       .then((response) => {
@@ -59,11 +62,10 @@ export default function ListWali() {
   }, []);
 
   React.useEffect(() => {
-    const token = localStorage.getItem('token');
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/admin/parent/all`, {
         headers: {
-          Authorization: `${token}`
+          Authorization: localStorage.getItem('token')
         }
       })
       .then((response) => {
@@ -76,10 +78,14 @@ export default function ListWali() {
       });
   }, []);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+  };
+
+  const handleSearchChangeModal = (e) => {
+    setSearchTermModal(e.target.value);
     if (e.target.value === '') {
-      setFilteredStudents(students);
+      setFilteredStudents([]);
     } else {
       const filtered = students.filter((student) => student.name.toLowerCase().includes(e.target.value.toLowerCase()));
       setFilteredStudents(filtered);
@@ -95,42 +101,78 @@ export default function ListWali() {
     setSelectedStudent(student);
   };
 
-  const handleSubmitAssignment = () => {
-    if (selectedParent && selectedStudent) {
-      const token = localStorage.getItem('token');
-      axios
-        .post(
-          `${process.env.NEXT_PUBLIC_API_URL}/admin/parent/assign-student`,
-          {
-            parent_id: selectedParent.id,
-            student_id: selectedStudent.id
-          },
-          {
-            headers: {
-              Authorization: `${token}`
-            }
-          }
-        )
-        .then((response) => {
-          console.log(response);
-          toast({
-            title: 'Siswa berhasil diassign',
-            status: 'success',
-            duration: 3000,
-            isClosable: true
-          });
-          onFirstModalClose();
-        })
-        .catch((error) => {
-          console.error('Error assigning student:', error);
-          toast({
-            title: 'Gagal mengassign siswa',
-            status: 'error',
-            duration: 3000,
-            isClosable: true
-          });
-        });
+  const handleRemoveStudent = (parent, student) => {
+    if (!parent || !student) {
+      console.error('Parent or student is null or undefined');
+      return;
     }
+
+    const token = localStorage.getItem('token');
+    axios
+      .delete(`${process.env.NEXT_PUBLIC_API_URL}/admin/parent/${parent}/${student}/remove-student`, {
+        headers: {
+          Authorization: token
+        }
+      })
+      .then(() => {
+        toast({
+          title: 'Siswa berhasil dihapus dari wali',
+          status: 'success',
+          duration: 3000,
+          isClosable: true
+        });
+        router.reload();
+      })
+      .catch((error) => {
+        console.error('Error removing student:', error);
+        toast({
+          title: 'Gagal menghapus siswa dari wali',
+          status: 'error',
+          duration: 3000,
+          isClosable: true
+        });
+      });
+  };
+
+  const handleSubmitAssignment = () => {
+    if (!selectedParent || !selectedStudent) {
+      console.error('Selected parent or student is null or undefined');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    axios
+      .post(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/parent/assign-student`,
+        {
+          parent_id: selectedParent.id,
+          student_id: selectedStudent.id
+        },
+        {
+          headers: {
+            Authorization: token
+          }
+        }
+      )
+      .then((response) => {
+        console.log(response);
+        toast({
+          title: 'Siswa berhasil diassign',
+          status: 'success',
+          duration: 3000,
+          isClosable: true
+        });
+        onFirstModalClose();
+      })
+      .catch((error) => {
+        console.error('Error assigning student:', error);
+        toast({
+          title: 'Gagal mengassign siswa',
+          status: 'error',
+          duration: 3000,
+          isClosable: true
+        });
+      });
   };
 
   return (
@@ -178,6 +220,7 @@ export default function ListWali() {
                     <Th>Email</Th>
                     <Th>Nama Siswa</Th>
                     <Th></Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -206,6 +249,15 @@ export default function ListWali() {
                             Assign Siswa
                           </SecondaryButton>
                         </Td>
+                        <Td>
+                          <SecondaryButton
+                            size="mini"
+                            btnClassName="font-semibold w-fit h-fit"
+                            onClick={() => handleRemoveStudent(item.id, item.student_id)}
+                          >
+                            Remove Siswa
+                          </SecondaryButton>
+                        </Td>
                       </Tr>
                     ))}
                 </Tbody>
@@ -227,23 +279,19 @@ export default function ListWali() {
             <ModalBody>
               <h1 className="text-lg font-semibold">Assign Siswa</h1>
               <p className="text-sm font-light text-Gray-600">Pilih dari search atau list dari daftar siswa</p>
-              <form action="" className="pb-3 mt-3">
-                <div className="flex flex-col gap-3">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500"
-                      placeholder="Search"
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                      <FiSearch />
-                    </div>
-                  </div>
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  value={searchTermModal}
+                  onChange={handleSearchChangeModal}
+                  className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:border-primary-500"
+                  placeholder="Search"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <FiSearch />
                 </div>
-              </form>
-              <div className="flex flex-col py-3 overflow-y-auto h-[200px]">
+              </div>
+              <div className="flex flex-col py-3 overflow-y-auto max-h-48">
                 {loadingStudents ? (
                   <>
                     <Skeleton height="40px" my="10px" />
@@ -252,26 +300,35 @@ export default function ListWali() {
                     <Skeleton height="40px" my="10px" />
                     <Skeleton height="40px" my="10px" />
                   </>
-                ) : filteredStudents && filteredStudents.length > 0 ? (
+                ) : filteredStudents.length > 0 ? (
                   filteredStudents.map((item, index) => (
                     <div
                       key={index}
-                      className={`flex items-center w-full gap-3 px-8 py-4 border-b justify-between border-Gray-200 ${
+                      className={`flex items-center w-full gap-3 px-8 py-4 border-b justify-between border-Gray-200 cursor-pointer ${
                         selectedStudent && selectedStudent.id === item.id ? 'bg-Gray-100' : ''
                       }`}
                       onClick={() => handleSelectStudent(item)}
                     >
                       <div className="flex items-center w-full gap-3">
+                        <img
+                          src={`https://ui-avatars.com/api/?name=${item.name}&background=random`}
+                          alt="Profile"
+                          width={40}
+                          height={40}
+                          className="rounded-full"
+                        />
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-Gray-900">{item.name}</span>
-                          <span className="text-sm text-Gray-600">{item.email}</span>
+                          <span className="text-xs text-Gray-500">{item.email}</span>
                         </div>
                       </div>
-                      <MdClose className="cursor-pointer text-Gray-500" />
+                      {selectedStudent && selectedStudent.id === item.id && (
+                        <MdClose className="cursor-pointer text-Gray-500" onClick={() => handleSelectStudent(null)} />
+                      )}
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-5 text-Gray-600">Tidak ada data siswa</div>
+                  <div className="text-center text-sm text-Gray-500">Tidak ada data siswa</div>
                 )}
               </div>
             </ModalBody>

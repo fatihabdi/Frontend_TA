@@ -90,26 +90,33 @@ export default function CreatePrestasi() {
             </div>
             <div className="flex flex-col gap-3">
               <h1 className="text-sm font-medium text-Gray-700">Jenis Prestasi</h1>
-              <input
-                type="text"
+              <Select
                 name="type_of_achivement"
                 id="type_of_achivement"
+                placeholder="Pilih Jenis Prestasi"
                 value={type_of_achivement}
                 onChange={(e) => setTypeOfAchievement(e.target.value)}
-                className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
-                placeholder="Tuliskan jenis prestasi"
-              />
+              >
+                <option value="OSN (Akademik)">OSN (Akademik)</option>
+                <option value="O2SN (Olahraga)">O2SN (Olahraga)</option>
+                <option value="FLS2N (Seni)">FLS2N (Seni)</option>
+              </Select>
             </div>
             <div className="flex flex-col gap-3">
               <h1 className="text-sm font-medium text-Gray-700">Jenis Partisipasi</h1>
-              <input
-                type="text"
+
+              <Select
                 id="participation"
+                placeholder="Pilih Jenis Partisipasi"
                 value={participation}
                 onChange={(e) => setParticipation(e.target.value)}
-                className="w-full p-2 border rounded-lg border-Gray-200 h-fit"
-                placeholder="Tuliskan jenis partisipasi"
-              />
+              >
+                <option value="Peserta">Peserta</option>
+                <option value="Juara 1">Juara 1</option>
+                <option value="Juara 2">Juara 2</option>
+                <option value="Juara 3">Juara 3</option>
+                <option value="Juara Harapan">Juara Harapan</option>
+              </Select>
             </div>
             <div className="flex flex-col gap-3">
               <h1 className="text-sm font-medium text-Gray-700">Jenis Tingkat</h1>

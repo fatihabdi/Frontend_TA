@@ -120,7 +120,7 @@ export const SidebarData = [
         icon: <GoDotFill />
       },
       {
-        title: 'Dispensasi',
+        title: 'Perizinan',
         path: '/wali/profil/dispensasi',
         icon: <GoDotFill />
       },

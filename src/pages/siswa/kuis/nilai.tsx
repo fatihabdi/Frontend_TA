@@ -89,7 +89,9 @@ export default function Nilai() {
                     <Td>{hasil.status}</Td>
                     <Td>{hasil.grade}</Td>
                     <Td>
-                      <PrimaryButton btnClassName="w-fit h-fit">Review</PrimaryButton>
+                      <PrimaryButton size="mini" onClick={() => router.push(`/siswa/kuis/hasil/${hasil.id}`)} btnClassName="w-fit h-fit">
+                        Review
+                      </PrimaryButton>
                     </Td>
                   </Tr>
                 )}

@@ -31,9 +31,15 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = () => {
-    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile/logout`, {
-      token: localStorage.getItem('token')
-    });
+    axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/profile/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
     localStorage.clear();
     router.push('/login');
   };

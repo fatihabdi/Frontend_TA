@@ -30,6 +30,7 @@ import { LuBookOpen } from 'react-icons/lu';
 export default function NilaiList() {
   const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isEditOpen, onOpen: onEditOpen, onClose: onEditClose } = useDisclosure();
   const toast = useToast();
   const [classes, setClasses] = React.useState([]);
   const [students, setStudents] = React.useState([]);
@@ -44,6 +45,7 @@ export default function NilaiList() {
   const [summativeScore, setSummativeScore] = React.useState('');
   const [projectScore, setProjectScore] = React.useState('');
   const [loading, setLoading] = React.useState(true);
+  const [editingGrade, setEditingGrade] = React.useState(null);
 
   React.useEffect(() => {
     fetchClasses();
@@ -145,6 +147,24 @@ export default function NilaiList() {
     onOpen();
   };
 
+  const handleEdit = async (gradeId, student) => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/grade/${gradeId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const grade = response.data.data;
+      setSelectedStudent(student);
+      setEditingGrade(grade);
+      setFormativeScore(grade.formative_scores);
+      setSummativeScore(grade.summative_scores);
+      setProjectScore(grade.project_scores);
+      onEditOpen();
+    } catch (error) {
+      console.error('Error fetching grade details:', error);
+    }
+  };
+
   const handleSubmit = async () => {
     const token = localStorage.getItem('token');
     const finalGrade = (parseFloat(formativeScore) + parseFloat(summativeScore) + parseFloat(projectScore)) / 3;
@@ -178,6 +198,43 @@ export default function NilaiList() {
       toast({
         title: 'Error',
         description: 'Failed to submit grade',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  };
+
+  const handleUpdate = async () => {
+    const token = localStorage.getItem('token');
+    const finalGrade = (parseFloat(formativeScore) + parseFloat(summativeScore) + parseFloat(projectScore)) / 3;
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/teacher/grade/${editingGrade.id}/update`,
+        {
+          formative_scores: parseFloat(formativeScore),
+          summative_scores: parseFloat(summativeScore),
+          project_scores: parseFloat(projectScore),
+          final_grade: finalGrade
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      toast({
+        title: 'Success',
+        description: 'Grade updated successfully',
+        status: 'success',
+        duration: 5000,
+        isClosable: true
+      });
+      fetchGrades();
+      onEditClose();
+    } catch (error) {
+      console.error('Error updating grade:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update grade',
         status: 'error',
         duration: 5000,
         isClosable: true
@@ -296,12 +353,8 @@ export default function NilaiList() {
                           <Td>{studentGrade?.summative_scores}</Td>
                           <Td>{studentGrade?.project_scores}</Td>
                           <Td>
-                            <SecondaryButton
-                              size="mini"
-                              btnClassName="font-semibold"
-                              onClick={() => router.push(`/nilai/detail/${student.id}`)}
-                            >
-                              Detail
+                            <SecondaryButton size="mini" btnClassName="font-semibold" onClick={() => handleEdit(studentGrade.id, student)}>
+                              Edit
                             </SecondaryButton>
                           </Td>
                         </Tr>
@@ -355,6 +408,47 @@ export default function NilaiList() {
                 Batal
               </SecondaryButton>
               <PrimaryButton onClick={handleSubmit} btnClassName="font-semibold">
+                Konfirmasi
+              </PrimaryButton>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+        <Modal isOpen={isEditOpen} onClose={onEditClose} isCentered>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>
+              <div className="p-2 rounded-full w-[36px] bg-Warning-100">
+                <LuBookOpen className="rotate-0 text-Warning-600" />
+              </div>
+            </ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <h1 className="text-lg font-semibold">Edit Nilai</h1>
+              <p className="text-sm font-light text-Gray-600">Edit nilai siswa dengan mengisi dibawah ini</p>
+              <div className="flex flex-col gap-3 mt-3">
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold text-Gray-700">Nama Siswa</label>
+                  <Input value={selectedStudent?.name} readOnly />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold text-Gray-700">Nilai Rata-rata Formatif</label>
+                  <Input placeholder="Masukkan nilai" value={formativeScore} onChange={(e) => setFormativeScore(e.target.value)} />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold text-Gray-700">Nilai Rata-rata Sumatif</label>
+                  <Input placeholder="Masukkan nilai" value={summativeScore} onChange={(e) => setSummativeScore(e.target.value)} />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold text-Gray-700">Nilai Rata-rata Proyek</label>
+                  <Input placeholder="Masukkan nilai" value={projectScore} onChange={(e) => setProjectScore(e.target.value)} />
+                </div>
+              </div>
+            </ModalBody>
+            <ModalFooter className="flex justify-center gap-3">
+              <SecondaryButton onClick={onEditClose} btnClassName="font-semibold">
+                Batal
+              </SecondaryButton>
+              <PrimaryButton onClick={handleUpdate} btnClassName="font-semibold">
                 Konfirmasi
               </PrimaryButton>
             </ModalFooter>

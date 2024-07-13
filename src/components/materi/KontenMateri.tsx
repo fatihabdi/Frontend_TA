@@ -89,12 +89,12 @@ export default function KontenMateri({ kontenMateri, setKontenMateri }: KontenMa
               colorScheme="blue"
               onClick={() => handleSelectSession(session)}
             >
-              {session.title}
+              {session.title.length > 10 ? `${session.title.substring(0, 10)}...` : session.title}
               <FiTrash2 className="ml-2" onClick={() => handleRemoveSession(session.id)} />
             </Button>
           ))}
         </Stack>
-        <PrimaryButton btnClassName="w-fit h-fit" onClick={handleAddSession}>
+        <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={handleAddSession}>
           Tambah Sesi
         </PrimaryButton>
       </div>

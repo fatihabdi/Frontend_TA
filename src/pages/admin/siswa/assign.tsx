@@ -41,7 +41,7 @@ export default function ListSiswa() {
   const [searchTerm2, setSearchTerm2] = React.useState('');
   const [selectedClass, setSelectedClass] = React.useState(null);
 
-  React.useEffect(() => {
+  const fetchStudents = () => {
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/admin/student/all`, {
         headers: {
@@ -57,9 +57,9 @@ export default function ListSiswa() {
         console.error('Error fetching students:', error);
         setLoadingStudents(false);
       });
-  }, []);
+  };
 
-  React.useEffect(() => {
+  const fetchClasses = () => {
     const token = localStorage.getItem('token');
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/all`, {
@@ -73,6 +73,11 @@ export default function ListSiswa() {
       .catch((error) => {
         console.error('Error fetching classes:', error);
       });
+  };
+
+  React.useEffect(() => {
+    fetchStudents();
+    fetchClasses();
   }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,6 +127,49 @@ export default function ListSiswa() {
     onOpen();
   };
 
+  const handleRemoveStudentClass = async (studentId) => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/student/${studentId}/remove-class`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        toast({
+          title: 'Removal Successful',
+          description: 'Student has been removed from the class successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+        fetchStudents(); // Refresh the data
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to remove student from the class.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        });
+      }
+    } catch (error) {
+      console.error('Error removing student from class:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove student from class due to an error.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  };
+
   const handleSubmitAssignment = async () => {
     if (!selectedClass || !selectedStudent) {
       toast({
@@ -158,6 +206,7 @@ export default function ListSiswa() {
         });
         onClose(); // Close the modal
         setSelectedClass(null); // Clear selected class
+        fetchStudents(); // Refresh the data
       } else {
         toast({
           title: 'Error',
@@ -221,6 +270,7 @@ export default function ListSiswa() {
                     <Th>Email</Th>
                     <Th>Kelas</Th>
                     <Th></Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -247,6 +297,15 @@ export default function ListSiswa() {
                         <Td>
                           <SecondaryButton size="mini" btnClassName="font-semibold w-fit h-fit" onClick={() => handleAssignClass(item)}>
                             Assign Kelas
+                          </SecondaryButton>
+                        </Td>
+                        <Td>
+                          <SecondaryButton
+                            size="mini"
+                            btnClassName="font-semibold w-fit h-fit"
+                            onClick={() => handleRemoveStudentClass(item.id)}
+                          >
+                            Remove Kelas
                           </SecondaryButton>
                         </Td>
                       </Tr>

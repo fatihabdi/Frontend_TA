@@ -302,7 +302,19 @@ export default function List() {
       .then((response) => {
         if (response.data && response.data.data) {
           const classData = response.data.data;
-          setClasses(classData);
+
+          // Remove duplicate classes
+          const uniqueClasses = [];
+          const classNames = new Set();
+
+          classData.forEach((cls) => {
+            if (!classNames.has(cls.class_name)) {
+              uniqueClasses.push(cls);
+              classNames.add(cls.class_name);
+            }
+          });
+
+          setClasses(uniqueClasses);
 
           const uniqueSubjects = [];
           classData.forEach((cls) => {
@@ -416,7 +428,12 @@ export default function List() {
                         <IconButton
                           aria-label="Preview"
                           icon={<PiEye />}
-                          onClick={() => router.push(`/guru/kuis/edit/${quiz.id}`)}
+                          onClick={() =>
+                            router.push({
+                              pathname: '/guru/kuis/edit',
+                              query: { id: quiz.id }
+                            })
+                          }
                           variant="ghost"
                         />
                         <IconButton aria-label="Edit" icon={<FiEdit />} onClick={() => handleEdit(quiz)} variant="ghost" />
@@ -592,7 +609,15 @@ export default function List() {
                   <label htmlFor="type" className="text-sm text-Gray-600">
                     Tipe Kuis
                   </label>
-                  <Select id="type" name="type" placeholder="Pilih Tipe" size="md" value={formData.type} onChange={handleInputChange}>
+                  <Select
+                    id="type"
+                    disabled
+                    name="type"
+                    placeholder="Pilih Tipe"
+                    size="md"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                  >
                     <option value="Multiple Choice">Pilihan Ganda</option>
                     <option value="Essay">Essay</option>
                   </Select>

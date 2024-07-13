@@ -268,7 +268,7 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               <span className="flex justify-between">
                 <h1 className="text-lg font-semibold">Informasi dan Pengaduan</h1>
-                <button className="font-semibold text-Primary-500" onClick={() => router.push('/admin/pengaduan/list')}>
+                <button className="font-semibold text-Primary-500" onClick={() => router.push('/guru/pengaturan/pengaduan')}>
                   Lihat Semua
                 </button>
               </span>
@@ -362,7 +362,7 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               <span className="flex justify-between">
                 <h1 className="text-lg font-semibold">Rangkuman Kehadiran</h1>
-                <button className="font-semibold text-Primary-500" onClick={() => router.push(`/guru/kehadiran/ListKehadiran`)}>
+                <button className="font-semibold text-Primary-500" onClick={() => router.push(`/guru/kehadiran/checklistKehadiran`)}>
                   Lihat Semua
                 </button>
               </span>

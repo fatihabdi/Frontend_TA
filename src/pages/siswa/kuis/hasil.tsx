@@ -5,6 +5,7 @@ import { FiSearch } from 'react-icons/fi';
 import { Table, Thead, Tr, Th, Tbody, Td, TableContainer, Tag, TagLabel, Select, useToast } from '@chakra-ui/react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import SecondaryButton from '@/components/SecondaryButton';
 
 export default function HasilKuis() {
   const [searchTerm, setSearchTerm] = React.useState('');
@@ -112,6 +113,7 @@ export default function HasilKuis() {
                   <Th>(%)</Th>
                   <Th>Total Points</Th>
                   <Th>Status</Th>
+                  <Th></Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -119,7 +121,7 @@ export default function HasilKuis() {
                   filteredHasil.map((item, index) => (
                     <Tr key={index}>
                       <Td>{item.submit_at}</Td>
-                      <Td className="flex flex-col">
+                      <Td>
                         <span>{item.quiz_name}</span>
                       </Td>
                       <Td>{handlePercentage(item.grade)}%</Td>
@@ -142,6 +144,11 @@ export default function HasilKuis() {
                             <TagLabel>Not Submitted</TagLabel>
                           </Tag>
                         )}
+                      </Td>
+                      <Td>
+                        <SecondaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => router.push(`/siswa/kuis/hasil/${item.id}`)}>
+                          Lihat Detail
+                        </SecondaryButton>
                       </Td>
                     </Tr>
                   ))

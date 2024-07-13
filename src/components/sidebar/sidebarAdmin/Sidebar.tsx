@@ -30,9 +30,15 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = () => {
-    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile/logout`, {
-      token: localStorage.getItem('token')
-    });
+    axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/profile/logout`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      }
+    );
     localStorage.clear();
     router.push('/login');
   };
@@ -49,7 +55,10 @@ export default function Sidebar() {
             <RiMenu2Line className="text-3xl" />
           </button>
         </div>
-        <div id="sidebar" className={`lg:flex lg:h-full lg:flex-col lg:justify-between place-content-between ${sidebarVisible ? 'block' : 'hidden'}`}>
+        <div
+          id="sidebar"
+          className={`lg:flex lg:h-full lg:flex-col lg:justify-between place-content-between ${sidebarVisible ? 'block' : 'hidden'}`}
+        >
           <div className="flex flex-col items-start flex-auto w-full gap-2 px-4 py-10">
             {SidebarData.map((item, index) => {
               return <SubMenu item={item} key={index} />;
@@ -57,7 +66,6 @@ export default function Sidebar() {
           </div>
           <div>
             <div className="flex flex-col items-center w-full gap-4 px-4 font-medium text-md">
-              
               <div className="mx-auto border-t w-full border-[#BBBBBB]">
                 <div className="flex items-center gap-4 mt-6">
                   <Image src={`https://ui-avatars.com/api/?name=${username}`} alt="Logo" width={40} height={24} className="rounded-full" />

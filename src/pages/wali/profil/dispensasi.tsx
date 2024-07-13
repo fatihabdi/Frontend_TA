@@ -100,15 +100,27 @@ export default function Dispensasi() {
           }
         }
       );
-      setDispensations([...dispensations, response.data.data]);
-      onFirstModalClose();
-      toast({
-        title: 'Success',
-        description: 'Dispensation created successfully.',
-        status: 'success',
-        duration: 5000,
-        isClosable: true
-      });
+      if (response.status === 201) {
+        toast({
+          title: 'Success',
+          description: 'Dispensation has been successfully submitted.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+        onFirstModalClose();
+        setReason('');
+        setStartAt('');
+        setEndAt('');
+        setDocument('');
+        // Fetch updated dispensations
+        const updatedResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/parent/dispensation`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        setDispensations(updatedResponse.data.data);
+      }
     } catch (error) {
       console.error('Error creating dispensation:', error);
       toast({
@@ -124,13 +136,13 @@ export default function Dispensasi() {
   return (
     <div>
       <AuthenticatedLayout>
-        <Seo templateTitle="Dispensasi" />
+        <Seo templateTitle="Perizinan" />
         <div className="w-full p-3 rounded-md shadow-lg h-fit bg-Base-white">
           <div className="flex flex-col justify-between gap-5 p-3 lg:flex-row lg:border-b border-Gray-200">
-            <h1 className="text-lg font-semibold">Daftar Dispensasi</h1>
+            <h1 className="text-lg font-semibold">Daftar Perizinan</h1>
             <div className="flex items-center gap-2">
               <PrimaryButton size="mini" btnClassName="w-fit h-fit py-2" onClick={onFirstModalOpen}>
-                Ajukan Dispensasi
+                Ajukan Perizinan
               </PrimaryButton>
             </div>
           </div>
@@ -169,9 +181,6 @@ export default function Dispensasi() {
                         <Td>
                           <Skeleton height="20px" />
                         </Td>
-                        <Td>
-                          <Skeleton height="20px" />
-                        </Td>
                       </Tr>
                     ))}
                   </>
@@ -186,25 +195,25 @@ export default function Dispensasi() {
                     </Td>
                   </Tr>
                 ) : (
-                  dispensations.map((item) => (
-                    <Tr key={item.id}>
-                      <Td className="text-sm text-Gray-900">{item.reason}</Td>
-                      <Td className="text-sm text-Gray-900">{item.start_at}</Td>
-                      <Td className="text-sm text-Gray-900">{item.end_at}</Td>
+                  dispensations.map((item, index) => (
+                    <Tr key={index}>
+                      <Td className="text-sm text-Gray-900">{item?.reason}</Td>
+                      <Td className="text-sm text-Gray-900">{item?.start_at}</Td>
+                      <Td className="text-sm text-Gray-900">{item?.end_at}</Td>
                       <Td className="">
                         <div className="flex items-center gap-2 text-sm text-Gray-900">
                           <FaFilePdf className="text-2xl text-Error-500" />
                           <div className="text-xs text-Gray-500">
-                            <h1>{item.document.slice(0, 12) + '...'}</h1>
+                            <h1>{item?.document ? item?.document.slice(0, 12) + '...' : 'No Document'}</h1>
                           </div>
                         </div>
                       </Td>
                       <Td>
-                        {item.status === 'pending' ? (
+                        {item?.status === 'pending' ? (
                           <Tag colorScheme="blue" borderRadius="full" size="sm">
                             <TagLabel>Wait Approval</TagLabel>
                           </Tag>
-                        ) : item.status === 'accepted' ? (
+                        ) : item?.status === 'accepted' ? (
                           <Tag colorScheme="green" borderRadius="full" size="sm">
                             <TagLabel>Success</TagLabel>
                           </Tag>
@@ -239,74 +248,76 @@ export default function Dispensasi() {
               <ModalBody>
                 <h1 className="text-lg font-semibold">Detail Dispensasi</h1>
                 <p className="text-sm font-light text-Gray-600">Detail dispensasi</p>
-                <div className="flex flex-col gap-3 mt-2 mb-2">
-                  <label htmlFor="student" className="text-sm text-Gray-600">
-                    Nama Siswa
-                  </label>
-                  <input
-                    type="text"
-                    id="student"
-                    className="w-full p-2 border-2 rounded-md border-Gray-300"
-                    value={selectedDispensation.student}
-                    readOnly
-                  />
-                  <label htmlFor="reason" className="text-sm text-Gray-600">
-                    Keterangan Dispensasi
-                  </label>
-                  <input
-                    type="text"
-                    id="reason"
-                    className="w-full p-2 border-2 rounded-md border-Gray-300"
-                    value={selectedDispensation.reason}
-                    readOnly
-                  />
-                </div>
-                <h1 className="font-semibold text-md text-Gray-900">Tanggal Dispensasi</h1>
-                <div className="flex flex-col gap-3">
-                  <label htmlFor="start_at" className="text-sm text-Gray-600">
-                    Tanggal Mulai
-                  </label>
-                  <input
-                    type="text"
-                    id="start_at"
-                    className="w-full p-2 border-2 rounded-md border-Gray-300"
-                    value={selectedDispensation.start_at}
-                    readOnly
-                  />
-                  <label htmlFor="end_at" className="text-sm text-Gray-600">
-                    Tanggal Berakhir
-                  </label>
-                  <input
-                    type="text"
-                    id="end_at"
-                    className="w-full p-2 border-2 rounded-md border-Gray-300"
-                    value={selectedDispensation.end_at}
-                    readOnly
-                  />
-                  <label htmlFor="document" className="text-sm text-Gray-600">
-                    Dokumen Pendukung
-                  </label>
-                  <div className="relative flex items-center mb-2 border-2 rounded-md border-Gray-300">
-                    <span className="px-3 border-r text-Gray-600">https://</span>
+                {selectedDispensation && (
+                  <div className="flex flex-col gap-3 mt-2 mb-2">
+                    <label htmlFor="student" className="text-sm text-Gray-600">
+                      Nama Siswa
+                    </label>
                     <input
                       type="text"
-                      id="document"
-                      className="w-full p-2 border-0 rounded-r-md focus:outline-none"
-                      value={selectedDispensation.document}
+                      id="student"
+                      className="w-full p-2 border-2 rounded-md border-Gray-300"
+                      value={selectedDispensation.student}
                       readOnly
                     />
+                    <label htmlFor="reason" className="text-sm text-Gray-600">
+                      Keterangan Dispensasi
+                    </label>
+                    <input
+                      type="text"
+                      id="reason"
+                      className="w-full p-2 border-2 rounded-md border-Gray-300"
+                      value={selectedDispensation.reason}
+                      readOnly
+                    />
+                    <h1 className="font-semibold text-md text-Gray-900">Tanggal Dispensasi</h1>
+                    <div className="flex flex-col gap-3">
+                      <label htmlFor="start_at" className="text-sm text-Gray-600">
+                        Tanggal Mulai
+                      </label>
+                      <input
+                        type="text"
+                        id="start_at"
+                        className="w-full p-2 border-2 rounded-md border-Gray-300"
+                        value={selectedDispensation.start_at}
+                        readOnly
+                      />
+                      <label htmlFor="end_at" className="text-sm text-Gray-600">
+                        Tanggal Berakhir
+                      </label>
+                      <input
+                        type="text"
+                        id="end_at"
+                        className="w-full p-2 border-2 rounded-md border-Gray-300"
+                        value={selectedDispensation.end_at}
+                        readOnly
+                      />
+                      <label htmlFor="document" className="text-sm text-Gray-600">
+                        Dokumen Pendukung
+                      </label>
+                      <div className="relative flex items-center mb-2 border-2 rounded-md border-Gray-300">
+                        <span className="px-3 border-r text-Gray-600">https://</span>
+                        <input
+                          type="text"
+                          id="document"
+                          className="w-full p-2 border-0 rounded-r-md focus:outline-none"
+                          value={selectedDispensation.document || 'No Document'}
+                          readOnly
+                        />
+                      </div>
+                      <label htmlFor="status" className="text-sm text-Gray-600">
+                        Status/Catatan
+                      </label>
+                      <input
+                        type="text"
+                        id="status"
+                        className="w-full p-2 border-2 rounded-md border-Gray-300"
+                        value={selectedDispensation.status}
+                        readOnly
+                      />
+                    </div>
                   </div>
-                  <label htmlFor="status" className="text-sm text-Gray-600">
-                    Status/Catatan
-                  </label>
-                  <input
-                    type="text"
-                    id="status"
-                    className="w-full p-2 border-2 rounded-md border-Gray-300"
-                    value={selectedDispensation.status}
-                    readOnly
-                  />
-                </div>
+                )}
               </ModalBody>
             </ModalContent>
           </Modal>

@@ -39,7 +39,19 @@ export default function Materi() {
         });
 
         setClasses(uniqueClasses);
-        setSubjects(response.data.data);
+
+        // Remove duplicate subjects
+        const uniqueSubjects = [];
+        const subjectSet = new Set();
+
+        response.data.data.forEach((sub) => {
+          if (!subjectSet.has(sub.subject_name)) {
+            subjectSet.add(sub.subject_name);
+            uniqueSubjects.push(sub);
+          }
+        });
+
+        setSubjects(uniqueSubjects);
       } catch (error) {
         console.error('Error fetching classes:', error);
       } finally {

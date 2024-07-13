@@ -106,9 +106,8 @@ export default function DetailTugas() {
             <div className="w-full p-3 text-sm font-medium border rounded-lg h-fit text-Gray-500">{assignment.task}</div>
             <h1 className="text-sm font-semibold text-Gray-600">Link File Tugas</h1>
             <a
-              href={`https://${assignment.submission}`}
+              href={assignment.submission}
               target="_blank"
-              rel="noopener noreferrer"
               className="w-full p-3 text-sm font-medium border rounded-lg h-fit underline text-Primary-400"
             >
               {assignment.submission}

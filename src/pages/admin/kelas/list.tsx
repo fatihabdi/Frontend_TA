@@ -29,8 +29,8 @@ import axios from 'axios';
 import { MdClose } from 'react-icons/md';
 
 interface Teacher {
-  id: number;
-  teacher_name: string;
+  id: string;
+  name: string;
   email: string;
 }
 
@@ -61,20 +61,22 @@ export default function ListKelas() {
         });
 
         // Fetch student counts for each class
-        const studentCountsPromises = classData.data.map(
-          (item) =>
-            axios
-              .get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/${item.id}/students`, {
-                headers: { Authorization: `Bearer ${token}` }
-              })
-              .catch((e) => ({ data: { data: [] } })) // Provide an empty array as fallback
-        );
+        const studentCountsPromises = classData.data.map(async (item) => {
+          try {
+            const { data: studentData } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/${item.id}/students`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            return studentData.data.length; // Ensure this returns a length
+          } catch {
+            return 0; // Fallback in case of an error
+          }
+        });
         const studentCounts = await Promise.all(studentCountsPromises);
 
         // Combine class data with student counts
         const classesWithStudents = classData.data.map((item, index) => ({
           ...item,
-          jumlahsiswa: studentCounts[index].data.data ? studentCounts[index].data.data.length : 0 // Use conditional checking
+          jumlahsiswa: studentCounts[index] || 0 // Ensure a default value
         }));
 
         setKelas(classesWithStudents || []); // Ensure `kelas` is an array
@@ -207,7 +209,8 @@ export default function ListKelas() {
       if (isAlreadySelected) {
         return prev.filter((t) => t.id !== teacher.id); // Remove from selection
       } else {
-        return [...prev, teacher]; // Add to selection
+        setSelectedTeacherId(teacher.id); // Set the selected teacher ID
+        return [teacher]; // Set as the only selected teacher
       }
     });
     setSearchTerm2(''); // Reset search term after selecting a teacher
