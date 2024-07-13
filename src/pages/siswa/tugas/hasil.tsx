@@ -128,12 +128,12 @@ export default function HasilTugas() {
                     const assignment = assignments[task.id];
                     return (
                       <Tr key={index}>
-                        <Td>{assignment ? new Date(assignment.submit_at).toLocaleDateString() : '-'}</Td>
+                        <Td>{assignment?.id ? new Date(assignment.submit_at).toLocaleDateString() : '-'}</Td>
                         <Td>{task.title}</Td>
                         <Td>{task.type_of_task}</Td>
-                        <Td>{assignment ? assignment.grade : '-'}</Td>
+                        <Td>{assignment?.id ? assignment.grade : '-'}</Td>
                         <Td>
-                          {assignment ? (
+                          {assignment?.id ? (
                             <Tag colorScheme="green" borderRadius="full" size="sm">
                               <TagLabel>
                                 {assignment.feedback !== 'Menunggu untuk dinilai guru' ? 'Sudah Dinilai' : 'Menunggu Penilaian'}
@@ -150,7 +150,7 @@ export default function HasilTugas() {
                             onClick={() =>
                               router.push({
                                 pathname: `/siswa/tugas/hasil/${task.id}`,
-                                query: { id: task.id, title: task.title}
+                                query: { id: task.id, title: task.title }
                               })
                             }
                             btnClassName="px-2 py-1 text-sm text-white bg-Primary rounded-md hover:bg-Primary-light"
@@ -163,7 +163,7 @@ export default function HasilTugas() {
                   })
                 ) : (
                   <Tr>
-                    <Td colSpan={5} className="text-center py-5 text-Gray-600">
+                    <Td colSpan={6} className="text-center py-5 text-Gray-600">
                       Tidak ada hasil ditemukan
                     </Td>
                   </Tr>

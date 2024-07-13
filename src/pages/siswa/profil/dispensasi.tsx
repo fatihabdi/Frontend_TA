@@ -181,7 +181,6 @@ const Dispensasi: React.FC = () => {
             <Table className="">
               <Thead className="bg-Gray-50">
                 <Tr>
-                  <Th>Nama Siswa</Th>
                   <Th>Keterangan Dispensasi</Th>
                   <Th>Tanggal Mulai</Th>
                   <Th>Tanggal Akhir</Th>
@@ -232,20 +231,6 @@ const Dispensasi: React.FC = () => {
                 ) : (
                   dispensations.map((item) => (
                     <Tr key={item.id}>
-                      <Td className="">
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src={`https://ui-avatars.com/api/?name=${item.student}`}
-                            alt="Logo"
-                            width={40}
-                            height={24}
-                            className="rounded-full"
-                          />
-                          <div className="">
-                            <span className="text-sm font-medium text-Gray-900">{item.student}</span>
-                          </div>
-                        </div>
-                      </Td>
                       <Td className="text-sm text-Gray-900">{item.reason}</Td>
                       <Td className="text-sm text-Gray-900">{item.start_at}</Td>
                       <Td className="text-sm text-Gray-900">{item.end_at}</Td>

@@ -41,22 +41,11 @@ export default function DetailDataDiri() {
   return (
     <AuthenticatedLayout>
       <Seo templateTitle="Detail Data Diri" />
-      <Box bg="Base-white" p={5} rounded="md" shadow="lg">
+      <Box className="bg-Base-white" p={5} rounded="md" shadow="lg">
         <Flex justify="space-between" borderBottom="1px" borderColor="Gray-200" p={3}>
           <Text fontSize="md" fontWeight="semibold">
             Detail Data Diri Siswa
           </Text>
-          <Button
-            colorScheme="gray"
-            variant="outline"
-            size="md"
-            leftIcon={<FiEdit />}
-            paddingLeft={8}
-            paddingRight={8}
-            onClick={() => router.push('/kehadiran/editKehadiran')}
-          >
-            Edit
-          </Button>
         </Flex>
         {data.length > 0 ? (
           <Flex align="center" gap={5} p={7}>

@@ -108,8 +108,8 @@ export default function List() {
                     <h1>Kelas : {item.class_id}</h1>
                   </span>
                 </div>
-                <PrimaryButton btnClassName="w-fit h-fit" onClick={() => handleKonfirmasiClick(item.id)}>
-                  Kerjakan
+                <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => handleKonfirmasiClick(item.id)}>
+                  Kerjakan Kuis
                 </PrimaryButton>
               </div>
             ))

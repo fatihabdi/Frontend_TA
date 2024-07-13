@@ -89,12 +89,12 @@ export default function PreviewTugas() {
         }
       })
       .then((response) => {
-        if (response.data && response.data.data) {
-          setSubmissionStatuses((prevStatuses) => ({
-            ...prevStatuses,
-            [taskId]: response.data.data.submit_at
-          }));
-        }
+        const assignment = response.data.data;
+        const isSubmitted = assignment && assignment.id !== '';
+        setSubmissionStatuses((prevStatuses) => ({
+          ...prevStatuses,
+          [taskId]: isSubmitted ? 'Sudah Mengumpulkan' : 'Belum Mengumpulkan'
+        }));
       })
       .catch((error) => {
         console.error(`Error fetching submission status for task ${taskId}:`, error);
@@ -189,7 +189,7 @@ export default function PreviewTugas() {
                     <h3 className="mt-2 text-lg font-bold">{task.title}</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    {submissionStatuses[task.id] ? (
+                    {submissionStatuses[task.id] === 'Sudah Mengumpulkan' ? (
                       <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => handleTaskSubmit(task.id, task.title)}>
                         Edit Tugas
                       </PrimaryButton>

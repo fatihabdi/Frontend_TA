@@ -57,7 +57,7 @@ export default function Literasi() {
         <div className="w-full p-3 border rounded-md shadow-lg h-fit border-Gray-200 bg-Base-white">
           <div className="flex items-center justify-between p-3 lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">Detail Pengumpulan</h1>
-            <PrimaryButton btnClassName="w-fit h-fit" onClick={() => router.push('/siswa/tugas/literasi/create')}>
+            <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => router.push('/siswa/tugas/literasi/create')}>
               Tambah Literasi
             </PrimaryButton>
           </div>

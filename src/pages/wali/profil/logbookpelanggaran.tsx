@@ -113,7 +113,7 @@ export default function Pelanggaran() {
                         </div>
                       </Td>
                       <Td>
-                        <SecondaryButton btnClassName="font-semibold" onClick={() => handleDetailsClick(violation.id)}>
+                        <SecondaryButton size="mini" btnClassName="font-semibold" onClick={() => handleDetailsClick(violation.id)}>
                           Details
                         </SecondaryButton>
                       </Td>

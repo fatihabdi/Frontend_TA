@@ -24,13 +24,14 @@ export default function ScheduleCard({ className, title, status, startTime, endT
       )}
     >
       <div className="flex flex-col">
-        <h1 className="font-semibold">{title} - {classNameProp}</h1>
+        <h1 className="font-semibold">
+          {title} {`- ${classNameProp}`}
+        </h1>
         <p className="text-sm flex mt-2 text-Gray-500">
           <MdAccessTime className="inline-block mr-1 text-xl" />
           {startTime} - {endTime}
         </p>
-        <p className="text-sm text-Gray-500">
-        </p>
+        <p className="text-sm text-Gray-500"></p>
       </div>
       <LuCheckCircle2
         className={clsxm('text-2xl', status === 'done' ? 'text-Success-600 bg-Success-50' : status === 'ongoing' ? 'hidden' : 'hidden')}

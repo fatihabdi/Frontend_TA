@@ -7,6 +7,7 @@ import CardPengaduan from '@/components/pengaduan/CardPengaduanGlobal';
 import { Skeleton } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import { FaWhatsapp } from 'react-icons/fa';
 
 interface Announcement {
   id: number;
@@ -46,7 +47,12 @@ export default function Pengaduan() {
           <div className="flex flex-col justify-between gap-5 p-3 lg:flex-row lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">List Informasi & Pengumuman</h1>
             <div className="flex flex-col items-center gap-2 lg:flex-row">
-              <PrimaryButton btnClassName="font-semibold w-full lg:w-fit h-fit" onClick={() => router.replace('https://wa.me/15551234567')}>
+              <PrimaryButton
+                leftIcon={<FaWhatsapp />}
+                size="mini"
+                btnClassName="font-semibold w-full lg:w-fit h-fit"
+                onClick={() => router.replace('https://wa.me/15551234567')}
+              >
                 Buat Pengaduan Baru
               </PrimaryButton>
             </div>

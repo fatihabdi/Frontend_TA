@@ -131,7 +131,6 @@ export default function Literasi() {
                   <Th>Judul Literasi</Th>
                   <Th>Total Points</Th>
                   <Th>Catatan dari guru</Th>
-                  <Th></Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -147,14 +146,6 @@ export default function Literasi() {
                       <Td>{item.title}</Td>
                       <Td>{item.point}/50</Td>
                       <Td>{item.feedback}</Td>
-                      <Td>
-                        <SecondaryButton
-                          btnClassName="font-semibold w-fit h-fit"
-                          onClick={() => router.push(`/materi/literasi/${item.id}`)}
-                        >
-                          Details
-                        </SecondaryButton>
-                      </Td>
                     </Tr>
                   ))
                 )}

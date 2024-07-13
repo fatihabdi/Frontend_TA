@@ -23,7 +23,7 @@ interface Announcement {
   id: number;
   title: string;
   information: string;
-  created_at: string; // Assuming the announcement has a created_at property
+  created_at: string;
 }
 
 interface Grade {
@@ -62,6 +62,7 @@ export default function Home() {
     fetchAnnouncements();
     fetchGrades();
     fetchAttendance();
+    fetchSchedule();
   }, []);
 
   React.useEffect(() => {
@@ -126,6 +127,42 @@ export default function Home() {
       setGroupedAttendance(groupedData);
     } catch (error) {
       console.error('Error fetching attendance:', error);
+    }
+  };
+
+  const fetchSchedule = async () => {
+    try {
+      const response = await axios.get<{ data: ScheduleItem[] }>(`${process.env.NEXT_PUBLIC_API_URL}/parent/schedule`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      const now = new Date();
+      const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' });
+
+      const scheduleWithStatus =
+        response.data.data?.map((item) => {
+          let status: 'inactive' | 'ongoing' | 'done' = 'inactive';
+          if (item.day_of_week === currentDay && dayjs(now).isSame(selectedDate, 'day')) {
+            if (currentTime > item.end_time) {
+              status = 'done';
+            } else if (currentTime >= item.start_time && currentTime <= item.end_time) {
+              status = 'ongoing';
+            }
+          }
+          return {
+            ...item,
+            status
+          };
+        }) || [];
+
+      setSchedule(scheduleWithStatus);
+      setLoadingSchedule(false);
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
+      setLoadingSchedule(false);
     }
   };
 

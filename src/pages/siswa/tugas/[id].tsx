@@ -35,7 +35,7 @@ export default function Tugas() {
 
   useEffect(() => {
     if (!id || !title) {
-      router.push(`/siswa/tugas`);
+      router.push(`/siswa/tugas/preview`);
     } else {
       checkAssignmentStatus();
     }
@@ -56,14 +56,20 @@ export default function Tugas() {
         }
       })
       .then((response) => {
-        if (response.data && response.data.data) {
+        const assignment = response.data.data;
+        if (assignment && assignment.id) {
           setIsSubmitted(true);
-          setAssignmentId(response.data.data.id);
-          setSubmission(response.data.data.submission || '');
-          setFeedback(response.data.data.feedback || 'Menunggu untuk dinilai guru');
-          if (response.data.data.feedback !== 'Menunggu untuk dinilai guru') {
+          setAssignmentId(assignment.id);
+          setSubmission(assignment.submission || '');
+          setFeedback(assignment.feedback || 'Menunggu untuk dinilai guru');
+          if (assignment.feedback !== 'Menunggu untuk dinilai guru') {
             setIsEditable(false);
           }
+        } else {
+          setIsSubmitted(false);
+          setAssignmentId(null);
+          setSubmission('');
+          setFeedback('Belum Dinilai');
         }
       })
       .catch((error) => {
@@ -126,7 +132,7 @@ export default function Tugas() {
         <div className="flex flex-col justify-between gap-5 p-3 lg:border-b lg:items-center lg:flex-row lg:border-Gray-200">
           <h1 className="font-semibold ">{title}</h1>
           {isEditable ? (
-            <PrimaryButton btnClassName="w-fit h-fit" onClick={onOpen}>
+            <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={onOpen}>
               {isSubmitted ? 'Edit Tugas' : 'Submit Tugas'}
             </PrimaryButton>
           ) : (
