@@ -26,7 +26,19 @@ export default function Literasi() {
           Authorization: `Bearer ${token}`
         }
       });
-      setClasses(response.data.data || []);
+
+      // Remove duplicates
+      const uniqueClasses = [];
+      const classNames = new Set();
+
+      response.data.data.forEach((cls) => {
+        if (!classNames.has(cls.class_name)) {
+          classNames.add(cls.class_name);
+          uniqueClasses.push(cls);
+        }
+      });
+
+      setClasses(uniqueClasses);
     } catch (error) {
       console.error('Error fetching classes:', error);
     }
@@ -106,10 +118,9 @@ export default function Literasi() {
               </Thead>
               <Tbody>
                 {filteredClasses.length > 0 ? (
-                  filteredClasses.map((cls) => (
-                    <Tr key={cls.class_id}>
+                  filteredClasses.map((cls, index) => (
+                    <Tr key={index}>
                       <Td className="font-semibold">{cls.class_name}</Td>
-
                       <Td>{getTotalSubmit(cls.class_id)}</Td>
                       <Td>
                         <SecondaryButton

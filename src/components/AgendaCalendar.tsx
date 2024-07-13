@@ -302,6 +302,7 @@ export default function AgendaCalendar({ className, ...rest }: AgendaCalendarPro
               <Select
                 name="class"
                 id="class_id"
+                placeholder='Pilih Kelas'
                 className="w-full  mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 onChange={(e) => handleInputChange(e)}
               >
@@ -317,6 +318,7 @@ export default function AgendaCalendar({ className, ...rest }: AgendaCalendarPro
               <Select
                 name="subject"
                 id="subject_id"
+                placeholder='Pilih Mata Pelajaran'
                 className="w-full  mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 onChange={(e) => handleInputChange(e)}
               >
@@ -332,6 +334,7 @@ export default function AgendaCalendar({ className, ...rest }: AgendaCalendarPro
               <Select
                 name="teacher"
                 id="teacher_id"
+                placeholder='Pilih Guru'
                 className="w-full  mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 onChange={(e) => handleInputChange(e)}
               >
@@ -347,6 +350,7 @@ export default function AgendaCalendar({ className, ...rest }: AgendaCalendarPro
               <Select
                 name="day_of_week"
                 id="day_of_week"
+                placeholder='Pilih Hari'
                 className="w-full  mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 onChange={(e) => handleInputChange(e)}
               >

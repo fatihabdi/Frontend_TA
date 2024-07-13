@@ -16,6 +16,7 @@ interface ScheduleItem {
   day_of_week: string;
   start_time: string;
   end_time: string;
+  class_name: string;
   status: 'inactive' | 'ongoing' | 'done';
 }
 
@@ -74,11 +75,9 @@ export default function Home() {
       })
       .then((response) => {
         const data = response.data.data || [];
-        console.log('API Response:', data);
 
         // Extract all subjects from each teacher in the data array
         const subjectsArray = data.flatMap((teacher) => teacher.subject);
-        console.log('Extracted Subjects:', subjectsArray);
 
         setSubject(subjectsArray);
         setLoadingSubjects(false);
@@ -440,6 +439,7 @@ export default function Home() {
                   status={item.status}
                   startTime={item.start_time}
                   endTime={item.end_time}
+                  classNameProp={item.class_name}
                   day={item.day_of_week === selectedDate.toLocaleDateString('en-US', { weekday: 'long' })}
                   className="mt-5"
                 />

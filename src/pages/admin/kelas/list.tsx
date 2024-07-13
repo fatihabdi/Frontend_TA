@@ -110,7 +110,7 @@ export default function ListKelas() {
     const token = localStorage.getItem('token');
     try {
       const response = await axios.post(
-        'http://localhost:3001/api/admin/class/create',
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/class/create`,
         { Name: newClassName },
         {
           headers: { Authorization: `Bearer ${token}` }

@@ -10,9 +10,10 @@ type ScheduleCardProps = {
   startTime: string;
   endTime: string;
   day: boolean;
+  classNameProp?: string;
 };
 
-export default function ScheduleCard({ className, title, status, startTime, endTime, day }: ScheduleCardProps) {
+export default function ScheduleCard({ className, title, status, startTime, endTime, day, classNameProp }: ScheduleCardProps) {
   return (
     <div
       className={clsxm(
@@ -23,10 +24,12 @@ export default function ScheduleCard({ className, title, status, startTime, endT
       )}
     >
       <div className="flex flex-col">
-        <h1 className="font-semibold">{title}</h1>
+        <h1 className="font-semibold">{title} - {classNameProp}</h1>
         <p className="text-sm flex mt-2 text-Gray-500">
           <MdAccessTime className="inline-block mr-1 text-xl" />
           {startTime} - {endTime}
+        </p>
+        <p className="text-sm text-Gray-500">
         </p>
       </div>
       <LuCheckCircle2

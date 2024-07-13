@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/components/layout/layoutGuru/AuthenticatedLay
 import Seo from '@/components/Seo';
 import { DayPicker, DayMouseEventHandler } from 'react-day-picker';
 import Holidays from 'date-holidays';
-import { isSameDay } from 'date-fns';
+import { isSameDay, format } from 'date-fns';
 import PrimaryButton from '@/components/PrimaryButton';
 import { Select, useToast } from '@chakra-ui/react';
 import { FiSearch, FiCalendar, FiBook, FiInfo } from 'react-icons/fi';
@@ -22,7 +22,6 @@ import { PiFlagBannerBold } from 'react-icons/pi';
 import SecondaryButton from '@/components/SecondaryButton';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { format } from 'date-fns';
 
 export default function PreviewTugas() {
   const initiallySelectedDate = new Date();
@@ -36,7 +35,14 @@ export default function PreviewTugas() {
   const [classSubjectData, setClassSubjectData] = React.useState([]);
   const [classes, setClasses] = React.useState([]);
   const [subjects, setSubjects] = React.useState([]);
-  const [formData, setFormData] = React.useState({
+
+  // Separate states for filters inside and outside the modal
+  const [outsideFilter, setOutsideFilter] = React.useState({
+    class_id: '',
+    subject_id: ''
+  });
+
+  const [insideFilter, setInsideFilter] = React.useState({
     class_id: '',
     subject_id: '',
     title: '',
@@ -118,7 +124,7 @@ export default function PreviewTugas() {
     } else {
       setSelectedDates([...selectedDates, day]);
     }
-    setFormData((prevFormData) => ({
+    setInsideFilter((prevFormData) => ({
       ...prevFormData,
       deadline: day.toISOString().split('T')[0]
     }));
@@ -128,9 +134,17 @@ export default function PreviewTugas() {
     setSearchTerm(event.target.value);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleOutsideFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prevFormData) => ({
+    setOutsideFilter((prevFilter) => ({
+      ...prevFilter,
+      [name]: value
+    }));
+  };
+
+  const handleInsideFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setInsideFilter((prevFormData) => ({
       ...prevFormData,
       [name]: value
     }));
@@ -138,9 +152,11 @@ export default function PreviewTugas() {
 
   const handleSubmit = () => {
     const token = localStorage.getItem('token');
-    const formattedDeadline = formData.deadline ? dayjs(formData.deadline).hour(23).minute(59).second(0).format('YYYY-MM-DD HH:mm:ss') : '';
+    const formattedDeadline = insideFilter.deadline
+      ? dayjs(insideFilter.deadline).hour(23).minute(59).second(0).format('YYYY-MM-DD HH:mm:ss')
+      : '';
 
-    const updatedFormData = { ...formData, deadline: formattedDeadline };
+    const updatedFormData = { ...insideFilter, deadline: formattedDeadline };
 
     axios
       .post(`${process.env.NEXT_PUBLIC_API_URL}/teacher/task/create`, updatedFormData, {
@@ -157,7 +173,7 @@ export default function PreviewTugas() {
           isClosable: true
         });
         onClose();
-        setFormData({
+        setInsideFilter({
           class_id: '',
           subject_id: '',
           title: '',
@@ -181,8 +197,8 @@ export default function PreviewTugas() {
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearchTerm = task.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = formData.class ? task.class === formData.class : true;
-    const matchesSubject = formData.subject ? task.subject === formData.subject : true;
+    const matchesClass = outsideFilter.class_id ? task.class === outsideFilter.class_id : true;
+    const matchesSubject = outsideFilter.subject_id ? task.subject === outsideFilter.subject_id : true;
     return matchesSearchTerm && matchesClass && matchesSubject;
   });
 
@@ -215,16 +231,22 @@ export default function PreviewTugas() {
               </PrimaryButton>
             </div>
             <div className="flex items-center justify-center gap-5">
-              <Select placeholder="Mata Pelajaran" size="md" name="subject_id" value={formData.subject_id} onChange={handleInputChange}>
+              <Select
+                placeholder="Mata Pelajaran"
+                size="md"
+                name="subject_id"
+                value={outsideFilter.subject_name}
+                onChange={handleOutsideFilterChange}
+              >
                 {subjects.map((subject) => (
-                  <option key={subject.subject_id} value={subject.subject_id}>
+                  <option key={subject.subject_id} value={subject.subject_name}>
                     {subject.subject_name}
                   </option>
                 ))}
               </Select>
-              <Select placeholder="Kelas" size="md" name="class_id" value={formData.class_id} onChange={handleInputChange}>
+              <Select placeholder="Kelas" size="md" name="class_id" value={outsideFilter.class_name} onChange={handleOutsideFilterChange}>
                 {classes.map((cls) => (
-                  <option key={cls.class_id} value={cls.class_id}>
+                  <option key={cls.class_id} value={cls.class_name}>
                     {cls.class_name}
                   </option>
                 ))}
@@ -305,8 +327,8 @@ export default function PreviewTugas() {
                   name="class_id"
                   placeholder="Pilih Kelas"
                   size="md"
-                  value={formData.class_id}
-                  onChange={handleInputChange}
+                  value={insideFilter.class_id}
+                  onChange={handleInsideFilterChange}
                 >
                   {classes.map((cls) => (
                     <option key={cls.class_id} value={cls.class_id}>
@@ -322,8 +344,8 @@ export default function PreviewTugas() {
                   name="subject_id"
                   placeholder="Pilih Mata Pelajaran"
                   size="md"
-                  value={formData.subject_id}
-                  onChange={handleInputChange}
+                  value={insideFilter.subject_id}
+                  onChange={handleInsideFilterChange}
                 >
                   {subjects.map((subject) => (
                     <option key={subject.subject_id} value={subject.subject_id}>
@@ -338,8 +360,8 @@ export default function PreviewTugas() {
                   type="text"
                   id="title"
                   name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
+                  value={insideFilter.title}
+                  onChange={handleInsideFilterChange}
                   className="w-full p-2 mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 />
                 <div className="flex flex-col mt-2 mb-2">
@@ -349,10 +371,11 @@ export default function PreviewTugas() {
                   <select
                     name="type_of_task"
                     id="type_of_task"
-                    value={formData.type_of_task}
-                    onChange={handleInputChange}
+                    value={insideFilter.type_of_task}
+                    onChange={handleInsideFilterChange}
                     className="p-2 mt-2 border-2 rounded-md border-Gray-300"
                   >
+                    <option value="">Pilih Jenis Tugas</option>
                     <option value="Tugas Harian">Tugas Harian</option>
                     <option value="Ulangan Harian">Ulangan Harian</option>
                     <option value="Proyek">Proyek</option>
@@ -364,8 +387,8 @@ export default function PreviewTugas() {
                 <textarea
                   id="description"
                   name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
+                  value={insideFilter.description}
+                  onChange={handleInsideFilterChange}
                   placeholder="cth. Buat artikel mengenai keluarga dalam bahasa inggris..."
                   className="w-full p-2 mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 />
@@ -376,8 +399,8 @@ export default function PreviewTugas() {
                   type="date"
                   id="deadline"
                   name="deadline"
-                  value={formData.deadline}
-                  onChange={handleInputChange}
+                  value={insideFilter.deadline}
+                  onChange={handleInsideFilterChange}
                   className="w-full p-2 mt-2 mb-2 border-2 rounded-md border-Gray-300"
                 />
                 <label htmlFor="link" className="text-sm text-Gray-600">
@@ -389,8 +412,8 @@ export default function PreviewTugas() {
                     type="text"
                     id="link"
                     name="link"
-                    value={formData.link}
-                    onChange={handleInputChange}
+                    value={insideFilter.link}
+                    onChange={handleInsideFilterChange}
                     className="w-full p-2 border-0 rounded-r-md focus:outline-none"
                     placeholder="www.example.com"
                   />

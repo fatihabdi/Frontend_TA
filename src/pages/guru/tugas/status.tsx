@@ -45,7 +45,19 @@ export default function StatusPengumpulan() {
 
         const allSubjects = subjectsData.flatMap((subjectGroup) => subjectGroup.subject);
         setSubjects(allSubjects);
-        setClasses(classesData);
+
+        // Filter out duplicate class names
+        const uniqueClasses = [];
+        const classNames = new Set();
+
+        classesData.forEach((cls) => {
+          if (!classNames.has(cls.class_name)) {
+            classNames.add(cls.class_name);
+            uniqueClasses.push(cls);
+          }
+        });
+
+        setClasses(uniqueClasses);
 
         const submissionsData = await Promise.all(
           tasksData.map(async (task) => {
@@ -58,7 +70,7 @@ export default function StatusPengumpulan() {
         );
 
         const studentsData = await Promise.all(
-          classesData.map(async (cls) => {
+          uniqueClasses.map(async (cls) => {
             return await Promise.all(
               allSubjects.map(async (subject) => {
                 const studentResponse = await axios.get(
@@ -85,7 +97,7 @@ export default function StatusPengumpulan() {
         }, {});
 
         const tasksWithSubmissionsAndStudents = tasksData.map((task) => {
-          const classData = classesData.find((cls) => cls.class_name === task.class);
+          const classData = uniqueClasses.find((cls) => cls.class_name === task.class);
           const subjectData = allSubjects.find((sub) => sub.name === task.subject);
 
           let totalSiswa = 0;

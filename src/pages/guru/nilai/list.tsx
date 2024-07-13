@@ -18,7 +18,8 @@ import {
   ModalFooter,
   Input,
   useToast,
-  useDisclosure
+  useDisclosure,
+  Spinner
 } from '@chakra-ui/react';
 import SecondaryButton from '@/components/SecondaryButton';
 import PrimaryButton from '@/components/PrimaryButton';
@@ -42,6 +43,7 @@ export default function NilaiList() {
   const [formativeScore, setFormativeScore] = React.useState('');
   const [summativeScore, setSummativeScore] = React.useState('');
   const [projectScore, setProjectScore] = React.useState('');
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     fetchClasses();
@@ -53,9 +55,22 @@ export default function NilaiList() {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/class`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setClasses(response.data.data || []);
+
+      const uniqueClasses = [];
+      const classSet = new Set();
+
+      response.data.data.forEach((cls) => {
+        if (!classSet.has(cls.class_name)) {
+          classSet.add(cls.class_name);
+          uniqueClasses.push(cls);
+        }
+      });
+
+      setClasses(uniqueClasses);
     } catch (error) {
       console.error('Error fetching classes:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -204,46 +219,52 @@ export default function NilaiList() {
             </div>
           </div>
           <div className="m-5 border rounded-lg shadow-sm">
-            <Table className="">
-              <Thead className="bg-Gray-50">
-                <Tr>
-                  <Th>No</Th>
-                  <Th>NIS</Th>
-                  <Th>Nama Siswa</Th>
-                  <Th>Jenis Kelamin</Th>
-                  <Th>Rata-Rata Formatif</Th>
-                  <Th>Rata-Rata Sumatif</Th>
-                  <Th>Rata-Rata Proyek</Th>
-                  <Th></Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {getUnratedStudents().length > 0 ? (
-                  getUnratedStudents().map((student, index) => (
-                    <Tr key={student.id}>
-                      <Td>{index + 1}</Td>
-                      <Td>{student.nisn}</Td>
-                      <Td>{student.name}</Td>
-                      <Td>{student.gender}</Td>
-                      <Td>-</Td>
-                      <Td>-</Td>
-                      <Td>-</Td>
-                      <Td>
-                        <SecondaryButton size="mini" btnClassName="font-semibold" onClick={() => handleOpenModal(student)}>
-                          Beri Nilai
-                        </SecondaryButton>
+            {loading ? (
+              <div className="flex justify-center items-center py-6">
+                <Spinner size="xl" />
+              </div>
+            ) : (
+              <Table className="">
+                <Thead className="bg-Gray-50">
+                  <Tr>
+                    <Th>No</Th>
+                    <Th>NIS</Th>
+                    <Th>Nama Siswa</Th>
+                    <Th>Jenis Kelamin</Th>
+                    <Th>Rata-Rata Formatif</Th>
+                    <Th>Rata-Rata Sumatif</Th>
+                    <Th>Rata-Rata Proyek</Th>
+                    <Th></Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {getUnratedStudents().length > 0 ? (
+                    getUnratedStudents().map((student, index) => (
+                      <Tr key={student.id}>
+                        <Td>{index + 1}</Td>
+                        <Td>{student.nisn}</Td>
+                        <Td>{student.name}</Td>
+                        <Td>{student.gender}</Td>
+                        <Td>-</Td>
+                        <Td>-</Td>
+                        <Td>-</Td>
+                        <Td>
+                          <SecondaryButton size="mini" btnClassName="font-semibold" onClick={() => handleOpenModal(student)}>
+                            Beri Nilai
+                          </SecondaryButton>
+                        </Td>
+                      </Tr>
+                    ))
+                  ) : (
+                    <Tr>
+                      <Td colSpan={8} className="text-center">
+                        Data Kosong / Sudah Dinilai Semua
                       </Td>
                     </Tr>
-                  ))
-                ) : (
-                  <Tr>
-                    <Td colSpan={8} className="text-center">
-                      Data Kosong / Sudah Dinilai Semua
-                    </Td>
-                  </Tr>
-                )}
-              </Tbody>
-            </Table>
+                  )}
+                </Tbody>
+              </Table>
+            )}
           </div>
           <div className="p-3">
             <h1 className="text-lg font-semibold">Sudah Dinilai</h1>

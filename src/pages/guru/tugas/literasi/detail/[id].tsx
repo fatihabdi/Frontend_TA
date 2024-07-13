@@ -102,11 +102,12 @@ export default function DetailLiterasi() {
                   <td className="flex flex-col gap-4 lg:items-center lg:flex-row">
                     <input
                       type="number"
+                      name='point'
                       className="p-2 border rounded-lg w-fit h-fit"
                       value={point}
                       onChange={(e) => setPoint(e.target.value)}
                     />
-                    <h1 className="text-sm text-Gray-500">Evaluasi tugas ini dengan nilai antara 0 sampai 50</h1>
+                    <h1 className="text-sm text-Gray-500">Evaluasi tugas ini dengan nilai antara 0 sampai 100</h1>
                   </td>
                 </tr>
                 <tr>
@@ -115,7 +116,7 @@ export default function DetailLiterasi() {
                   </td>
                   <td>
                     <textarea
-                      name=""
+                      name="feedback"
                       className="p-2 border rounded-lg"
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
@@ -126,7 +127,7 @@ export default function DetailLiterasi() {
                 <tr>
                   <td className=""></td>
                   <td>
-                    <PrimaryButton btnClassName="" onClick={handleSave}>
+                    <PrimaryButton size='mini' btnClassName="" onClick={handleSave}>
                       Beri Nilai Tugas Ini
                     </PrimaryButton>
                   </td>
@@ -134,10 +135,6 @@ export default function DetailLiterasi() {
                 </tr>
               </tbody>
             </table>
-            <h1 className="text-sm font-semibold text-Gray-600">Status Penilaian</h1>
-            <Tag colorScheme={literationDetail.status === 'Sudah Dinilai' ? 'green' : 'red'}>
-              <TagLabel>{literationDetail.status || 'Belum Dinilai'}</TagLabel>
-            </Tag>
           </div>
         </div>
       </AuthenticatedLayout>

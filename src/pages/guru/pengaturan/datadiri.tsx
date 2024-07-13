@@ -26,7 +26,17 @@ export default function DataDiri() {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/class`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setClasses(response.data.data || []);
+      const uniqueClasses = [];
+      const classSet = new Set();
+
+      response.data.data.forEach((cls) => {
+        if (!classSet.has(cls.class_name)) {
+          classSet.add(cls.class_name);
+          uniqueClasses.push(cls);
+        }
+      });
+
+      setClasses(uniqueClasses);
     } catch (error) {
       console.error('Error fetching classes:', error);
     }

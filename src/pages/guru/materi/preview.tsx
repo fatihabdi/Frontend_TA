@@ -12,7 +12,8 @@ export default function Materi() {
   const router = useRouter();
   const [matters, setMatters] = React.useState([]);
   const [classes, setClasses] = React.useState([]);
-  const [participants, setParticipants] = React.useState({});
+  const [subjects, setSubjects] = React.useState([]);
+  const [participants, setParticipants] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedClass, setSelectedClass] = React.useState('');
   const [selectedSubject, setSelectedSubject] = React.useState('');
@@ -22,10 +23,23 @@ export default function Materi() {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
       try {
-        const classesResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/class`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/class`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setClasses(classesResponse.data.data || []);
+
+        // Remove duplicate class names
+        const uniqueClasses = [];
+        const classSet = new Set();
+
+        response.data.data.forEach((cls) => {
+          if (!classSet.has(cls.class_name)) {
+            classSet.add(cls.class_name);
+            uniqueClasses.push(cls);
+          }
+        });
+
+        setClasses(uniqueClasses);
+        setSubjects(response.data.data);
       } catch (error) {
         console.error('Error fetching classes:', error);
       } finally {
@@ -39,9 +53,7 @@ export default function Materi() {
   const handleClassChange = async (e) => {
     const selectedClass = e.target.value;
     setSelectedClass(selectedClass);
-    if (selectedClass && selectedSubject) {
-      fetchMattersAndParticipants(selectedClass, selectedSubject);
-    }
+    setSelectedSubject('');
   };
 
   const handleSubjectChange = async (e) => {
@@ -67,17 +79,16 @@ export default function Materi() {
 
       setMatters(mattersResponse.data.data || []);
       setParticipants(participantsResponse.data.data || []);
-      console.log(participantsResponse.data.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       setMatters([]);
-      setParticipants({});
+      setParticipants([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
   };
 
@@ -86,6 +97,10 @@ export default function Materi() {
     localStorage.setItem('subjectId', selectedSubject);
   };
 
+  const filteredSubjects = subjects
+    .filter((cls) => cls.class_id === selectedClass)
+    .map((cls) => ({ subject_id: cls.subject_id, subject_name: cls.subject_name }));
+
   return (
     <div>
       <AuthenticatedLayout>
@@ -93,7 +108,7 @@ export default function Materi() {
         <div className="w-full p-3 border rounded-md shadow-lg h-fit border-Gray-200 bg-Base-white">
           <div className="flex justify-between p-3 lg:border-b border-Gray-200">
             <h1 className="text-lg font-semibold">List Materi</h1>
-            <PrimaryButton btnClassName="w-fit" onClick={handleMove}>
+            <PrimaryButton size="mini" btnClassName="w-fit" onClick={handleMove}>
               Tambah Materi
             </PrimaryButton>
           </div>
@@ -115,13 +130,11 @@ export default function Materi() {
                 Mata Pelajaran
               </label>
               <Select placeholder="Mata Pelajaran" size="md" name="subject" onChange={handleSubjectChange}>
-                {classes
-                  .filter((cls) => cls.class_id === selectedClass)
-                  .map((cls) => (
-                    <option key={cls.subject_id} value={cls.subject_id}>
-                      {cls.subject_name}
-                    </option>
-                  ))}
+                {filteredSubjects.map((subject) => (
+                  <option key={subject.subject_id} value={subject.subject_id}>
+                    {subject.subject_name}
+                  </option>
+                ))}
               </Select>
             </span>
             <span className="flex flex-col justify-end w-full gap-4">

@@ -12,6 +12,7 @@ export default function DetailPengumpulanLiterasi() {
   const { classId } = router.query;
   const [literationDetails, setLiterationDetails] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [sortOrder, setSortOrder] = React.useState('');
 
   React.useEffect(() => {
     if (classId) {
@@ -34,6 +35,20 @@ export default function DetailPengumpulanLiterasi() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSortOrderChange = (e) => {
+    const order = e.target.value;
+    setSortOrder(order);
+    setLiterationDetails((prevDetails) => {
+      const sortedDetails = [...prevDetails];
+      if (order === 'ascending') {
+        return sortedDetails;
+      } else if (order === 'descending') {
+        return sortedDetails.reverse();
+      }
+      return sortedDetails;
+    });
   };
 
   if (loading) {
@@ -59,10 +74,9 @@ export default function DetailPengumpulanLiterasi() {
             <label htmlFor="sort" className="text-sm font-medium text-Gray-700">
               Sort By
             </label>
-            <Select placeholder="Urutkan" size="md" name="sort" className="">
-              <option value="1">X</option>
-              <option value="2">XI</option>
-              <option value="3">XII</option>
+            <Select placeholder="Urutkan" size="md" name="sort" onChange={handleSortOrderChange} value={sortOrder}>
+              <option value="ascending">Ascending</option>
+              <option value="descending">Descending</option>
             </Select>
           </div>
           <div className="m-3 border rounded-lg shadow-sm ">
@@ -99,7 +113,7 @@ export default function DetailPengumpulanLiterasi() {
                       <Td className="text-sm text-Gray-900">{item.point}</Td>
                       <Td>{item.feedback || 'Belum ada catatan'}</Td>
                       <Td>
-                        {item.status ? (
+                        {item.status === 'Sudah Dinilai' ? (
                           <Tag colorScheme="green">
                             <TagLabel>Sudah Dinilai</TagLabel>
                           </Tag>
