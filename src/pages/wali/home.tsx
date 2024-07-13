@@ -69,6 +69,16 @@ export default function Home() {
     fetchGrades();
   }, [semester, academic_year]);
 
+  const dayOfWeekMap: { [key: number]: string } = {
+    1: 'Monday',
+    2: 'Tuesday',
+    3: 'Wednesday',
+    4: 'Thursday',
+    5: 'Friday',
+    6: 'Saturday',
+    7: 'Sunday'
+  };
+
   const fetchAnnouncements = async () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/global/announcements`, {
@@ -144,8 +154,9 @@ export default function Home() {
 
       const scheduleWithStatus =
         response.data.data?.map((item) => {
+          const itemDay = dayOfWeekMap[item.day_of_week];
           let status: 'inactive' | 'ongoing' | 'done' = 'inactive';
-          if (item.day_of_week === currentDay && dayjs(now).isSame(selectedDate, 'day')) {
+          if (itemDay === currentDay && dayjs(now).isSame(selectedDate, 'day')) {
             if (currentTime > item.end_time) {
               status = 'done';
             } else if (currentTime >= item.start_time && currentTime <= item.end_time) {
@@ -154,6 +165,7 @@ export default function Home() {
           }
           return {
             ...item,
+            day_of_week: itemDay,
             status
           };
         }) || [];

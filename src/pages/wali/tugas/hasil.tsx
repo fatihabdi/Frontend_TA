@@ -1,5 +1,5 @@
 import Seo from '@/components/Seo';
-import AuthenticatedLayout from '@/components/layout/layoutSiswa/AuthenticatedLayout';
+import AuthenticatedLayout from '@/components/layout/layoutWali/AuthenticatedLayout';
 import * as React from 'react';
 import { FiSearch } from 'react-icons/fi';
 import { Table, Thead, Tr, Th, Tbody, Td, TableContainer, Tag, TagLabel, useToast } from '@chakra-ui/react';

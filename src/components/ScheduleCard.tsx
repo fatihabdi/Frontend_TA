@@ -25,7 +25,7 @@ export default function ScheduleCard({ className, title, status, startTime, endT
     >
       <div className="flex flex-col">
         <h1 className="font-semibold">
-          {title} {`- ${classNameProp}`}
+          {title} {classNameProp && `- ${classNameProp}`}
         </h1>
         <p className="text-sm flex mt-2 text-Gray-500">
           <MdAccessTime className="inline-block mr-1 text-xl" />
