@@ -220,6 +220,7 @@ export default function AssignGuruPengajar() {
         });
         onClose(); // Close the modal
         setSelectedTeachers([]); // Clear selected teachers
+        fetchSubjects(); // Refresh the data
       } else {
         toast({
           title: 'Error',
@@ -234,6 +235,50 @@ export default function AssignGuruPengajar() {
       toast({
         title: 'Error',
         description: 'Failed to assign teachers due to an error.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  };
+
+  const handleRemoveTeacherAndSubject = async (classId, subjectId) => {
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/class/${classId}/subject/${subjectId}/remove-subject`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        toast({
+          title: 'Removal Successful',
+          description: 'Teacher and subject have been removed successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+        fetchSubjects(); // Refresh the data
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to remove teacher and subject.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        });
+      }
+    } catch (error) {
+      console.error('Error removing teacher and subject:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove teacher and subject due to an error.',
         status: 'error',
         duration: 5000,
         isClosable: true
@@ -305,6 +350,7 @@ export default function AssignGuruPengajar() {
                   <Th>Kelas</Th>
                   <Th>Nama Mata Pelajaran</Th>
                   <Th>Guru Pengajar</Th>
+                  <Th></Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -345,6 +391,15 @@ export default function AssignGuruPengajar() {
                           ) : (
                             '-'
                           )}
+                        </Td>
+                        <Td>
+                          <SecondaryButton
+                            btnClassName="font-semibold w-fit h-fit"
+                            size="mini"
+                            onClick={() => handleRemoveTeacherAndSubject(item.class_id, item.subject_id)}
+                          >
+                            Remove
+                          </SecondaryButton>
                         </Td>
                       </Tr>
                     ))

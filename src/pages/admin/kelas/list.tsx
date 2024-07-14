@@ -41,27 +41,34 @@ export default function ListKelas() {
   const [filteredTeachers, setFilteredTeachers] = React.useState<Teacher[] | null>(null);
   const [selectedTeachers, setSelectedTeachers] = React.useState<Teacher[]>([]);
   const [kelas, setKelas] = React.useState([]);
+  const [teachers, setTeachers] = React.useState<Teacher[]>([]);
   const [searchTerm2, setSearchTerm2] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [newClassName, setNewClassName] = React.useState('');
   const [selectedClassId, setSelectedClassId] = React.useState<string | null>(null);
   const [selectedTeacherId, setSelectedTeacherId] = React.useState<string | null>(null);
-  const [teachers, setTeachers] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [selectedKelasFilter, setSelectedKelasFilter] = React.useState('');
 
   React.useEffect(() => {
-    const fetchClassesAndStudents = async () => {
+    const fetchClassesAndTeachers = async () => {
       const token = localStorage.getItem('token');
       setLoading(true);
 
       try {
-        const { data: classData } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/all`, {
+        const classResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/all`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
+        const teacherResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/teacher/all`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const classData = classResponse.data.data;
+        const teacherData = teacherResponse.data.data;
+
         // Fetch student counts for each class
-        const studentCountsPromises = classData.data.map(async (item) => {
+        const studentCountsPromises = classData.map(async (item) => {
           try {
             const { data: studentData } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/${item.id}/students`, {
               headers: { Authorization: `Bearer ${token}` }
@@ -73,39 +80,28 @@ export default function ListKelas() {
         });
         const studentCounts = await Promise.all(studentCountsPromises);
 
-        // Combine class data with student counts
-        const classesWithStudents = classData.data.map((item, index) => ({
-          ...item,
-          jumlahsiswa: studentCounts[index] || 0 // Ensure a default value
-        }));
+        // Combine class data with student counts and corresponding teacher ID
+        const classesWithDetails = classData.map((item, index) => {
+          const teacher = teacherData.find((tch) => tch.name === item.homeRoomTeacher);
+          return {
+            ...item,
+            jumlahsiswa: studentCounts[index] || 0,
+            homeRoomTeacherId: teacher ? teacher.id : null
+          };
+        });
 
-        setKelas(classesWithStudents || []); // Ensure `kelas` is an array
+        setKelas(classesWithDetails || []); // Ensure `kelas` is an array
+        setTeachers(teacherData || []); // Ensure `teachers` is an array
       } catch (error) {
-        console.error('Error fetching classes or students:', error);
+        console.error('Error fetching classes or teachers:', error);
         setKelas([]); // Ensure `kelas` is an array in case of error
+        setTeachers([]); // Ensure `teachers` is an array in case of error
       } finally {
         setLoading(false);
       }
     };
 
-    fetchClassesAndStudents();
-  }, []);
-
-  React.useEffect(() => {
-    const fetchTeachers = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/teacher/all`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setTeachers(response.data.data || []); // Ensure `teachers` is an array
-      } catch (error) {
-        console.error('Error fetching teachers:', error);
-        setTeachers([]); // Ensure `teachers` is an array in case of error
-      }
-    };
-
-    fetchTeachers();
+    fetchClassesAndTeachers();
   }, []);
 
   const handleCreateClass = async () => {
@@ -203,6 +199,52 @@ export default function ListKelas() {
     }
   };
 
+  const handleRemoveHomeroomTeacher = async (classId) => {
+    const token = localStorage.getItem('token');
+    if (!classId) return;
+
+    try {
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/class/${classId}/remove-homeroom-teacher`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.status === 200) {
+        toast({
+          title: 'Teacher Removed',
+          description: 'Homeroom teacher has been removed successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true
+        });
+        // Refresh class list
+        const { data: classData } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/admin/class/all`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setKelas(classData.data || []); // Ensure `kelas` is an array
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to remove homeroom teacher.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true
+        });
+      }
+    } catch (error) {
+      console.error('Error removing homeroom teacher:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to remove homeroom teacher due to an error.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  };
+
   const handleSelectTeacher = (teacher: Teacher) => {
     setSelectedTeachers((prev) => {
       const isAlreadySelected = prev.find((t) => t.id === teacher.id);
@@ -290,6 +332,7 @@ export default function ListKelas() {
                     <Th>Jumlah Siswa</Th>
                     <Th>Wali Kelas</Th>
                     <Th></Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -323,6 +366,17 @@ export default function ListKelas() {
                           btnClassName="w-fit h-fit text-sm py-2"
                         >
                           Assign Guru
+                        </SecondaryButton>
+                      </Td>
+                      <Td>
+                        <SecondaryButton
+                          size="mini"
+                          onClick={() => {
+                            handleRemoveHomeroomTeacher(item.id); // Ensure the correct IDs are passed
+                          }}
+                          btnClassName="w-fit h-fit text-sm py-2"
+                        >
+                          Remove Guru
                         </SecondaryButton>
                       </Td>
                     </Tr>
