@@ -144,9 +144,6 @@ export default function Login() {
                   <Checkbox name="remember_me" checked={false} onChange={() => {}} />
                   <label htmlFor="remember_me">Remember me</label>
                 </div>
-                <a href="#" className="font-semibold text-Primary-500">
-                  Forgot password
-                </a>
               </div>
               <div className="mt-4">
                 <PrimaryButton onClick={handleClick} is_loading={isLoading}>
