@@ -12,7 +12,8 @@ import {
   ModalFooter,
   useDisclosure,
   Skeleton,
-  useToast
+  useToast,
+  Button
 } from '@chakra-ui/react';
 import { FiSearch } from 'react-icons/fi';
 import PrimaryButton from '@/components/PrimaryButton';
@@ -24,6 +25,7 @@ import axios from 'axios';
 export default function List() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [kuis, setKuis] = React.useState([]);
+  const [submittedQuizzes, setSubmittedQuizzes] = React.useState({});
   const [loading, setLoading] = React.useState(true);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedQuizId, setSelectedQuizId] = React.useState(null);
@@ -45,18 +47,42 @@ export default function List() {
 
   React.useEffect(() => {
     setLoading(true);
+    const token = localStorage.getItem('token');
     axios
       .get(`${process.env.NEXT_PUBLIC_API_URL}/student/quiz`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          Authorization: `Bearer ${token}`
         }
       })
       .then((response) => {
         if (response.data && response.data.data) {
-          setKuis(response.data.data);
+          const quizzes = response.data.data;
+          setKuis(quizzes);
+
+          const quizIds = quizzes.map((quiz) => quiz.id);
+          return Promise.all(
+            quizIds.map((quizId) =>
+              axios
+                .get(`${process.env.NEXT_PUBLIC_API_URL}/student/quiz/${quizId}/grade`, {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                })
+                .then((res) => ({ quizId, data: res.data.data }))
+                .catch(() => ({ quizId, data: null }))
+            )
+          );
         } else {
           setKuis([]);
+          setLoading(false);
         }
+      })
+      .then((responses) => {
+        const submissions = {};
+        responses.forEach((response) => {
+          submissions[response.quizId] = response.data;
+        });
+        setSubmittedQuizzes(submissions);
         setLoading(false);
       })
       .catch((error) => {
@@ -108,9 +134,15 @@ export default function List() {
                     <h1>Kelas : {item.class_id}</h1>
                   </span>
                 </div>
-                <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => handleKonfirmasiClick(item.id)}>
-                  Kerjakan Kuis
-                </PrimaryButton>
+                {submittedQuizzes[item.id] ? (
+                  <Button size="sm" isDisabled>
+                    Sudah Dikerjakan
+                  </Button>
+                ) : (
+                  <PrimaryButton size="mini" btnClassName="w-fit h-fit" onClick={() => handleKonfirmasiClick(item.id)}>
+                    Kerjakan Kuis
+                  </PrimaryButton>
+                )}
               </div>
             ))
           ) : (

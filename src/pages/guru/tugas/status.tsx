@@ -13,8 +13,6 @@ export default function StatusPengumpulan() {
   const [loading, setLoading] = React.useState(true);
   const [subjects, setSubjects] = React.useState([]);
   const [classes, setClasses] = React.useState([]);
-  const [submissions, setSubmissions] = React.useState({});
-  const [students, setStudents] = React.useState({});
   const [filters, setFilters] = React.useState({
     subject: '',
     class: '',
@@ -27,11 +25,8 @@ export default function StatusPengumpulan() {
     const fetchData = async () => {
       const token = localStorage.getItem('token');
       try {
-        const [taskResponse, subjectResponse, classResponse] = await Promise.all([
+        const [taskResponse, classResponse] = await Promise.all([
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/task/all`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/subject/all`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/class`, {
@@ -40,24 +35,47 @@ export default function StatusPengumpulan() {
         ]);
 
         const tasksData = taskResponse.data.data || [];
-        const subjectsData = subjectResponse.data.data || [];
         const classesData = classResponse.data.data || [];
 
-        const allSubjects = subjectsData.flatMap((subjectGroup) => subjectGroup.subject);
-        setSubjects(allSubjects);
-
-        // Filter out duplicate class names
+        // Filter out duplicate class names and subject names
         const uniqueClasses = [];
         const classNames = new Set();
+        const allSubjects = [];
 
         classesData.forEach((cls) => {
           if (!classNames.has(cls.class_name)) {
             classNames.add(cls.class_name);
             uniqueClasses.push(cls);
           }
+          if (!allSubjects.find((sub) => sub.id === cls.subject_id)) {
+            allSubjects.push({ id: cls.subject_id, name: cls.subject_name });
+          }
         });
 
         setClasses(uniqueClasses);
+        setSubjects(allSubjects);
+
+        const studentsData = await Promise.all(
+          uniqueClasses.map(async (cls) => {
+            return await Promise.all(
+              allSubjects.map(async (subject) => {
+                const studentResponse = await axios.get(
+                  `${process.env.NEXT_PUBLIC_API_URL}/teacher/subject/${cls.class_id}/${subject.id}/student`,
+                  {
+                    headers: { Authorization: `Bearer ${token}` }
+                  }
+                );
+                const totalSiswa = (studentResponse.data.data || []).length;
+                return { classId: cls.class_id, subjectId: subject.id, totalSiswa };
+              })
+            );
+          })
+        );
+
+        const studentsMap = studentsData.flat().reduce((acc, curr) => {
+          acc[`${curr.classId}-${curr.subjectId}`] = curr.totalSiswa;
+          return acc;
+        }, {});
 
         const submissionsData = await Promise.all(
           tasksData.map(async (task) => {
@@ -69,30 +87,8 @@ export default function StatusPengumpulan() {
           })
         );
 
-        const studentsData = await Promise.all(
-          uniqueClasses.map(async (cls) => {
-            return await Promise.all(
-              allSubjects.map(async (subject) => {
-                const studentResponse = await axios.get(
-                  `${process.env.NEXT_PUBLIC_API_URL}/teacher/subject/${cls.id}/${subject.id}/student`,
-                  {
-                    headers: { Authorization: `Bearer ${token}` }
-                  }
-                );
-                const totalSiswa = (studentResponse.data.data || []).length;
-                return { classId: cls.id, subjectId: subject.id, totalSiswa };
-              })
-            );
-          })
-        );
-
         const submissionsMap = submissionsData.reduce((acc, curr) => {
           acc[curr.taskId] = curr.totalSubmit;
-          return acc;
-        }, {});
-
-        const studentsMap = studentsData.flat().reduce((acc, curr) => {
-          acc[`${curr.classId}-${curr.subjectId}`] = curr.totalSiswa;
           return acc;
         }, {});
 
@@ -102,7 +98,7 @@ export default function StatusPengumpulan() {
 
           let totalSiswa = 0;
           if (classData && subjectData) {
-            totalSiswa = studentsMap[`${classData.id}-${subjectData.id}`] || 0;
+            totalSiswa = studentsMap[`${classData.class_id}-${subjectData.id}`] || 0;
           }
 
           return {
@@ -180,7 +176,7 @@ export default function StatusPengumpulan() {
               </Select>
               <Select name="class" placeholder="Kelas" size="md" onChange={handleFilterChange}>
                 {classes.map((cls) => (
-                  <option key={cls.id} value={cls.class_name}>
+                  <option key={cls.class_id} value={cls.class_name}>
                     {cls.class_name}
                   </option>
                 ))}

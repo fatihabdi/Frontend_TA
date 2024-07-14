@@ -138,9 +138,6 @@ export default function Hasil() {
               <Table variant="simple" className="">
                 <Thead className="bg-Gray-50">
                   <Tr>
-                    <Th>
-                      <Checkbox />
-                    </Th>
                     <Th>Nama Siswa</Th>
                     <Th>(%)</Th>
                     <Th>Total Points</Th>
@@ -151,9 +148,6 @@ export default function Hasil() {
                 <Tbody>
                   {filteredQuizzes.map((item, index) => (
                     <Tr key={index}>
-                      <Td>
-                        <Checkbox />
-                      </Td>
                       <Td className="">
                         <div className="flex items-center gap-2">
                           <Image
