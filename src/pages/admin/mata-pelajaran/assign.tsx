@@ -131,7 +131,7 @@ export default function AssignGuruPengajar() {
     const value = e.target.value;
     setSearchTerm2(value);
     if (value) {
-      setFilteredTeachers(guruAll.filter((teacher) => teacher.teacher_name.toLowerCase().includes(value.toLowerCase())));
+      setFilteredTeachers(guruAll.filter((teacher) => teacher.name.toLowerCase().includes(value.toLowerCase())));
     } else {
       setFilteredTeachers(null);
     }
@@ -432,14 +432,14 @@ export default function AssignGuruPengajar() {
                         >
                           <div className="flex items-center w-full gap-3">
                             <img
-                              src={`https://ui-avatars.com/api/?name=${teacher.teacher_name}&background=random`}
+                              src={`https://ui-avatars.com/api/?name=${teacher.name}&background=random`}
                               alt="Profile"
                               width={40}
                               height={40}
                               className="rounded-full"
                             />
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-Gray-900">{teacher.teacher_name}</span>
+                              <span className="text-sm font-medium text-Gray-900">{teacher.name}</span>
                               <span className="text-xs text-Gray-500">{teacher.email}</span>
                             </div>
                           </div>
@@ -457,14 +457,14 @@ export default function AssignGuruPengajar() {
                     <div className="flex items-center w-full gap-3 px-8 py-4 border-b justify-between border-Gray-200" key={index}>
                       <div className="flex items-center w-full gap-3">
                         <img
-                          src={`https://ui-avatars.com/api/?name=${teacher.teacher_name}&background=random`}
+                          src={`https://ui-avatars.com/api/?name=${teacher.name}&background=random`}
                           alt="Profile"
                           width={40}
                           height={40}
                           className="rounded-full"
                         />
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-Gray-900">{teacher.teacher_name}</span>
+                          <span className="text-sm font-medium text-Gray-900">{teacher.name}</span>
                           <span className="text-xs text-Gray-500">{teacher.email}</span>
                         </div>
                       </div>
