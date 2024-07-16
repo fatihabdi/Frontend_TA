@@ -62,7 +62,11 @@ export default function Pelanggaran() {
           })
         ]);
 
-        setClasses(classesResponse.data.data || []);
+        const uniqueClasses = classesResponse.data.data.filter(
+          (cls, index, self) => self.findIndex((c) => c.class_name === cls.class_name) === index
+        );
+
+        setClasses(uniqueClasses || []);
         setViolations(violationsResponse.data.data || []);
       } catch (error) {
         console.error('Error fetching classes and violations:', error);

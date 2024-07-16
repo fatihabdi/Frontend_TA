@@ -30,7 +30,10 @@ export default function Hasil() {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teacher/class`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setClasses(response.data.data || []);
+      const uniqueClasses = response.data.data.filter(
+        (cls, index, self) => self.findIndex((c) => c.class_name === cls.class_name) === index
+      );
+      setClasses(uniqueClasses || []);
     } catch (error) {
       console.error('Error fetching classes:', error);
     }

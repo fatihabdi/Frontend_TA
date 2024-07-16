@@ -47,7 +47,7 @@ export default function Pengaduan() {
         }
       })
       .then((response) => {
-        setAnnouncements(response.data.data || []); // Ensure the response data is an array
+        setAnnouncements(response.data.data.reverse() || []); // Ensure the response data is an array
         setLoading(false);
       })
       .catch((error) => {

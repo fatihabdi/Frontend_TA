@@ -33,7 +33,11 @@ export default function ChecklistKehadiran() {
           })
         ]);
 
-        setClasses(classesResponse.data.data || []);
+        const uniqueClasses = classesResponse.data.data.filter(
+          (cls, index, self) => self.findIndex((c) => c.class_name === cls.class_name) === index
+        );
+
+        setClasses(uniqueClasses || []);
         const allSubjects = subjectsResponse.data.data.flatMap((subjectGroup) => subjectGroup.subject);
         setSubjects(allSubjects || []);
       } catch (error) {
